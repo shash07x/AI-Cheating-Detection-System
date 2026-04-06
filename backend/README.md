@@ -1,3 +1,12 @@
+---
+title: AI Cheating Detection Backend
+emoji: 🎓
+colorFrom: blue
+colorTo: purple
+sdk: docker
+app_port: 7860
+---
+
 # Backend – AI Cheating Detection System
 
 ## 📌 Description
