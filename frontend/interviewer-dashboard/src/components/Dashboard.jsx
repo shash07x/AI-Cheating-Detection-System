@@ -40,7 +40,7 @@ export default function Dashboard() {
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
       const data = await res.json();
-      setSessionLink(data.join_url || `http://localhost:3002?session=${sessionId}`);
+      setSessionLink(data.join_url || `https://ai-cheating-detection-system-weld.vercel.app/?session=${sessionId}`);
       alert("Session created! Link is ready to share.");
     } catch (error) {
       console.error("Failed to create session:", error);

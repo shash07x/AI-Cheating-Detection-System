@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request
 session_bp = Blueprint("session", __name__, url_prefix="/session")
 
 # Deployed candidate app URL (set via environment variable on Render)
-CANDIDATE_APP_URL = os.environ.get("CANDIDATE_APP_URL", "http://localhost:3002")
+CANDIDATE_APP_URL = os.environ.get("CANDIDATE_APP_URL", "https://ai-cheating-detection-system-weld.vercel.app")
 
 @session_bp.route("/create", methods=["POST"])
 def create_session():
