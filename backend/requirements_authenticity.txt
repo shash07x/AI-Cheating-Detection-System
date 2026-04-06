@@ -1,0 +1,37 @@
+# ==================== Core Dependencies ====================
+setuptools>=65.5.0
+wheel>=0.38.0
+
+# ==================== Speech-to-Text ====================
+# Use git+ version for better Windows compatibility
+git+https://github.com/openai/whisper.git
+
+# Alternative: faster-whisper (lighter, faster, Windows-friendly)
+# Uncomment if openai-whisper still fails:
+# faster-whisper==1.0.0
+
+# ==================== Audio Processing ====================
+# Install ffmpeg-python for Whisper audio handling
+ffmpeg-python==0.2.0
+soundfile>=0.12.1
+librosa>=0.10.1
+numba==0.58.1  # Required for librosa, pinned for compatibility
+
+# ==================== NLP & Transformers ====================
+transformers>=4.35.0
+torch>=2.1.0
+tokenizers>=0.15.0
+sentencepiece>=0.1.99
+sacremoses>=0.1.1
+
+# ==================== Text Analysis ====================
+nltk>=3.8.1
+textstat>=0.7.3
+
+# Skip language-tool-python (heavy dependency, optional)
+# language-tool-python==2.7.1
+
+# ==================== Utilities ====================
+regex>=2023.10.3
+tqdm>=4.66.0
+more-itertools>=10.1.0

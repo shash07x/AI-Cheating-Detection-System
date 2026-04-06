@@ -1,0 +1,115 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+backend/venv/
+backend/.venv/
+backend/env/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build outputs
+frontend/candidate-app/build/
+frontend/candidate-app/dist/
+frontend/interviewer-dashboard/build/
+frontend/interviewer-dashboard/dist/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Model weights / large binary files
+*.pt
+*.pth
+*.bin
+*.onnx
+*.weights
+*.h5
+*.pkl
+*.safetensors
+*.faiss
+
+# Audio/Video files
+*.mp4
+*.webm
+*.wav
+*.mp3
+
+# Test coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# pytest
+.pytest_cache/
+.tox/
+
+# mypy
+.mypy_cache/
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Data directory
+data/
+
+# ML Datasets (too large for git)
+backend/ml/datasets/
+**/datasets/
+
+# Old / backup versions
+backend_v2/
+frontend_v2/
+
+# Overleaf / LaTeX build artifacts
+overleaf_ready/
+overleaf_ready.zip
+overleaf_upload/
+
+# Backend generated files
+backend/instance/
+backend/evidence/
+backend/backend/
+
+# Large report files (keep in repo if desired, remove these lines)
+# project_report_*.tex
+
+# Temp / helper files
+push_to_github.ps1
+*.zip

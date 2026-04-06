@@ -1,0 +1,929 @@
+\documentclass[12pt,a4paper]{extreport}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{mathptmx}
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  left=1.25in,
+  right=1.25in,
+  top=1in,
+  bottom=1in
+}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{graphicx}
+\graphicspath{{figures/}{results/}}
+\usepackage{caption}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{etoolbox}
+\usepackage{indentfirst}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue
+}
+
+\setlength{\parindent}{0.5in}
+\setlength{\parskip}{6pt}
+\setlist{itemsep=2pt, topsep=4pt}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setcounter{secnumdepth}{3}
+
+\titleformat{\chapter}[display]
+  {\bfseries\centering\fontsize{16}{18}\selectfont}
+  {CHAPTER \thechapter}
+  {8pt}
+  {\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{-28pt}{14pt}
+
+\titleformat{\section}
+  {\bfseries\fontsize{14}{16}\selectfont}
+  {\thesection}
+  {0.8em}
+  {}
+
+\titleformat{\subsection}
+  {\bfseries\fontsize{12}{14}\selectfont}
+  {\thesubsection}
+  {0.8em}
+  {}
+
+\captionsetup[figure]{font=normalsize,labelfont=bf,labelsep=period}
+\captionsetup[table]{font=normalsize,labelfont=bf,labelsep=period}
+\renewcommand{\figurename}{Fig.}
+\renewcommand{\tablename}{Table}
+\renewcommand{\cftloftitlefont}{\hfill\bfseries\fontsize{16}{18}\selectfont}
+\renewcommand{\cftafterloftitle}{\hfill}
+\renewcommand{\cftlottitlefont}{\hfill\bfseries\fontsize{16}{18}\selectfont}
+\renewcommand{\cftafterlottitle}{\hfill}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\lstdefinestyle{reportcode}{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!60!black}\bfseries,
+  commentstyle=\color{green!40!black},
+  stringstyle=\color{red!50!black},
+  numbers=left,
+  numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=8pt,
+  frame=single,
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=2,
+  xleftmargin=12pt,
+  framexleftmargin=10pt
+}
+
+\newcommand{\frontchapter}[1]{
+  \phantomsection
+  \chapter*{#1}
+  \addcontentsline{toc}{chapter}{#1}
+}
+
+\newcommand{\safeimage}[2][]{%
+  \IfFileExists{#2}{%
+    \includegraphics[#1]{#2}%
+  }{%
+    \fbox{%
+      \parbox[c][6cm][c]{0.82\textwidth}{%
+        \centering
+        Image placeholder\\[0.2cm]
+        Missing file: \texttt{#2}%
+      }%
+    }%
+  }%
+}
+
+\newcommand{\safecodefile}[2][]{%
+  \IfFileExists{#2}{%
+    \lstinputlisting[style=reportcode,#1]{#2}%
+  }{%
+    \begin{lstlisting}[style=reportcode]
+File not available in the LaTeX project:
+#2
+
+Upload the source file to include it in the annexure.
+    \end{lstlisting}
+  }%
+}
+
+\newcommand{\codeannexsection}[3][]{%
+\clearpage
+\section*{#2}
+\addcontentsline{toc}{section}{#2}
+\safecodefile[#1]{#3}
+}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+\vspace*{0.7cm}
+{\bfseries\fontsize{18}{20}\selectfont SRI RAMAKRISHNA ENGINEERING COLLEGE}\\[0.25cm]
+{\fontsize{12}{14}\selectfont Coimbatore -- 641022}\\[0.15cm]
+{\fontsize{12}{14}\selectfont (An Autonomous Institution, Affiliated to Anna University, Chennai)}\\[0.15cm]
+{\fontsize{12}{14}\selectfont Department of Computer Science and Engineering}\\[1.4cm]
+
+{\bfseries\fontsize{16}{18}\selectfont FINAL YEAR PROJECT REPORT}\\[0.9cm]
+
+{\bfseries\fontsize{16}{18}\selectfont AI-BASED CHEATING DETECTION AND REMOTE INTERVIEW}\\[0.2cm]
+{\bfseries\fontsize{16}{18}\selectfont PROCTORING SYSTEM USING MULTI-MODAL VIDEO, AUDIO,}\\[0.2cm]
+{\bfseries\fontsize{16}{18}\selectfont SOCKET STREAMING, AND FRAUD SCORE FUSION}\\[1.3cm]
+
+{\fontsize{12}{14}\selectfont Prepared from the current project workspace and source repository}\\[0.6cm]
+{\bfseries\fontsize{14}{16}\selectfont AI CHEATING DETECTION PROJECT}\\
+{\fontsize{12}{14}\selectfont Repository-based documentation build}\\[1.1cm]
+
+{\fontsize{12}{14}\selectfont A project report prepared in the style of the sample departmental format}\\
+{\fontsize{12}{14}\selectfont using the code, configuration, and documents present in the current directory}\\[0.45cm]
+{\bfseries\fontsize{14}{16}\selectfont BACHELOR OF ENGINEERING}\\
+{\bfseries\fontsize{14}{16}\selectfont IN}\\
+{\bfseries\fontsize{14}{16}\selectfont COMPUTER SCIENCE AND ENGINEERING}\\[1.0cm]
+
+{\bfseries\fontsize{14}{16}\selectfont ANNA UNIVERSITY, CHENNAI -- 600025}\\[1.0cm]
+{\bfseries\fontsize{14}{16}\selectfont 2025 -- 2026}
+\end{center}
+\end{titlepage}
+
+\begin{titlepage}
+\begin{center}
+\vspace*{0.7cm}
+{\bfseries\fontsize{18}{20}\selectfont SRI RAMAKRISHNA ENGINEERING COLLEGE}\\[0.25cm]
+{\fontsize{12}{14}\selectfont Coimbatore -- 641022}\\[0.15cm]
+{\fontsize{12}{14}\selectfont Department of Computer Science and Engineering}\\[1.3cm]
+
+{\bfseries\fontsize{16}{18}\selectfont BONAFIDE CERTIFICATE}\\[1.0cm]
+\end{center}
+
+\noindent Certified that this repository-based project report entitled \textbf{``AI-Based Cheating Detection and Remote Interview Proctoring System Using Multi-Modal Video, Audio, Socket Streaming, and Fraud Score Fusion''} has been prepared from the code, configuration files, and supporting documents available in the current project workspace. The document follows the structure of the provided sample report while replacing the original topic with a detailed analysis of the present implementation, including the backend, frontend, versioned modules, testing files, and deployment-oriented assets found in the repository.
+
+\vspace{2.8cm}
+
+\noindent
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{SIGNATURE OF THE GUIDE / REVIEWER}\\[0.35cm]
+Guide / Faculty Reviewer\\
+Department of Computer Science and Engineering\\
+Sri Ramakrishna Engineering College\\
+Coimbatore -- 641022
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{SIGNATURE OF THE HEAD OF THE DEPARTMENT}\\[0.35cm]
+Professor and Head\\
+Department of Computer Science and Engineering\\
+Sri Ramakrishna Engineering College\\
+Coimbatore -- 641022
+\end{minipage}
+
+\vfill
+\noindent Submitted for project documentation review based on the repository state available at the time of report preparation.
+
+\vspace{2cm}
+
+\noindent
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{INTERNAL EXAMINER}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{EXTERNAL EXAMINER}
+\end{minipage}
+\end{titlepage}
+
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\frontchapter{DECLARATION}
+This report is prepared by analyzing the source code, folder structure, configuration files, and supporting notes available in the current project directory. The report uses the supplied sample \LaTeX{} format as the stylistic and structural baseline, but the subject matter, technical explanation, module descriptions, tables, and annexure contents have been rewritten to reflect the present workspace, which implements an AI-assisted cheating detection and remote interview proctoring system. No attempt has been made to shorten the report through page minimization; instead, the same long-form project-report style has been preserved so that the documentation remains comparable in academic scope and physical length.
+
+\vspace{2cm}
+
+\noindent
+\begin{tabular}{p{0.55\textwidth}p{0.35\textwidth}}
+\textbf{PROJECT WORKSPACE ANALYSIS} & Signature: \rule{5cm}{0.4pt}\\[0.6cm]
+\textbf{CURRENT DIRECTORY REPORT} & Signature: \rule{5cm}{0.4pt}\\[0.6cm]
+\textbf{SOURCE-BASED DOCUMENTATION} & Signature: \rule{5cm}{0.4pt}
+\end{tabular}
+
+\vspace{1.6cm}
+
+\noindent This declaration states that the report content has been derived from the repository located in the present project directory and not from the original topic used in the sample file.
+
+\vspace{2cm}
+
+\noindent \textbf{Guide Signature:} \rule{6cm}{0.4pt}
+
+\frontchapter{ACKNOWLEDGEMENT}
+This report owes its form to the sample project-report template that established the expected academic layout, chapter progression, and annexure style. Its substance, however, comes from the source repository itself. The backend services, frontend dashboards, audio and video processing scripts, versioned modules, model assets, and testing files present in the workspace together made it possible to write a project document that is grounded in real implementation details rather than generic system descriptions.
+
+Special acknowledgement is due to the structure already present in the codebase. The Flask application factory, Socket.IO event flow, YOLO-driven vision modules, audio-analysis routes, fusion-state tracking, evidence capture logic, and React-based candidate and interviewer applications provide enough technical depth to support a full academic report. The internal markdown notes found in the backend folder also helped clarify the intent behind several implementation stages and version changes.
+
+Gratitude is likewise due to the open-source tools and frameworks reflected directly in the repository, including Flask, Flask-SocketIO, OpenCV, Ultralytics YOLO, librosa, NumPy, React, and Socket.IO client libraries. These tools shape the actual system behavior discussed throughout this report, from real-time camera ingestion to fraud alert broadcasting and final risk-report generation.
+
+\frontchapter{ABSTRACT}
+This report documents the AI Cheating Detection project found in the current working directory. The repository implements a multi-modal remote interview proctoring platform in which video frames, audio chunks, tab-switch events, and session-level metadata are combined to infer suspicious behavior. The system uses a Flask backend, Socket.IO-based real-time communication, React frontends for both candidate and interviewer roles, YOLO-backed vision analysis, and heuristic as well as model-oriented audio processing components. The project does not consist of a single monolithic application; instead, it contains multiple implementation tracks such as \texttt{backend}, \texttt{backend\_v2}, \texttt{frontend}, and \texttt{frontend\_v2}, reflecting iterative system development.
+
+At the video level, the repository performs face availability checks, multi-person detection, mobile-phone detection, head-pose estimation, looking-away analysis, and evidence-image capture. At the audio level, the code supports chunk-wise upload, silence detection, speech buffering, transcription, AI-text scoring, AI-voice analysis, and real-time dashboard updates. These streams are merged into a fused risk score that is surfaced to the interviewer dashboard and later converted into a session-ending report with verdict, confidence, reasons, and supporting evidence references.
+
+The report shows that the project is best understood as a real-time, event-driven integrity-monitoring system. Its implementation emphasizes operational responsiveness more than offline benchmarking. Major strengths of the codebase include clear modular separation, route-based extensibility, session-specific state tracking, parallel UI surfaces for interviewer and candidate, and a practical evidence pipeline. At the same time, the repository also exposes challenges typical of active student projects: duplicated versions, partial placeholders, heuristic thresholds, and uneven documentation depth across modules.
+
+Overall, the system provides a solid applied-computing project for remote proctoring and interview supervision. By translating the repository into a full-length academic report, this document preserves the sample file's detailed page-oriented style while replacing the original domain with a grounded analysis of the current project's real implementation.
+
+\tableofcontents
+\clearpage
+\listoffigures
+\addcontentsline{toc}{chapter}{LIST OF FIGURES}
+\clearpage
+\listoftables
+\addcontentsline{toc}{chapter}{LIST OF TABLES}
+\clearpage
+
+\frontchapter{LIST OF ABBREVIATIONS}
+\begin{longtable}{p{0.22\textwidth}p{0.68\textwidth}}
+AI & Artificial Intelligence\\
+API & Application Programming Interface\\
+ASR & Automatic Speech Recognition\\
+CNN & Convolutional Neural Network\\
+CPU & Central Processing Unit\\
+CORS & Cross-Origin Resource Sharing\\
+EAAE & Enhanced Audio Analysis Engine\\
+HTTP & Hypertext Transfer Protocol\\
+JSON & JavaScript Object Notation\\
+MFCC & Mel-Frequency Cepstral Coefficients\\
+NLP & Natural Language Processing\\
+RMS & Root Mean Square\\
+SQL & Structured Query Language\\
+UI & User Interface\\
+URL & Uniform Resource Locator\\
+V1 & Initial implementation track\\
+V2 & Revised implementation track\\
+WSGI & Web Server Gateway Interface\\
+YOLO & You Only Look Once
+\end{longtable}
+
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\chapter{INTRODUCTION}
+\section{Background of the Study}
+Remote interviews, online assessments, and virtual candidate screening have become common across academia and industry. As these activities moved away from physically supervised environments, the need for real-time integrity monitoring increased significantly. A remote proctoring system must observe multiple behavioral signals at once: whether the candidate remains visible, whether another person appears in the scene, whether a mobile phone enters the frame, whether suspicious audio patterns are present, and whether the candidate repeatedly switches away from the interview session.
+
+The current project addresses this need by implementing a real-time cheating detection platform that combines computer vision, audio analysis, socket-based event streaming, and dashboard reporting. Rather than acting as a purely theoretical study, the repository shows the practical engineering decisions required to turn multi-modal analysis into a working application.
+
+\section{Need for AI-Based Interview Proctoring}
+Traditional manual supervision does not scale well for distributed interviewing. A human reviewer can inspect only a limited number of sessions in real time, and manual review becomes inconsistent when long recordings must be checked after the fact. This makes automated alerting valuable. The present repository reflects that operational goal clearly. It captures frames and audio from the candidate side, analyzes them on the backend, and emits risk updates to an interviewer dashboard as the session progresses.
+
+The need is therefore twofold. First, there is a need for automated event detection. Second, there is a need for meaningful aggregation, because isolated events such as a brief head turn or momentary silence should not automatically translate into a fail verdict. The codebase addresses this by maintaining per-session state and by calculating combined risk indicators.
+
+\section{Motivation}
+The strongest motivation visible in this project is the attempt to move beyond a single detection rule. The repository includes multiple routes, services, and socket handlers because cheating behavior is multi-modal by nature. A candidate can look away repeatedly, receive help from another person, use a phone, rely on AI-generated text or voice assistance, or exploit window switching without visibly violating face-presence checks. The project therefore tries to monitor several streams together rather than rely on only one.
+
+A second motivation is real-time feedback. The React dashboard is not just a static report viewer. It displays live fraud alerts, score breakdowns, AI voice percentages, risk meters, and final reports. This makes the system useful during the session itself instead of only after the interview has concluded.
+
+\section{Problem Statement}
+The central problem addressed by the project is the reliable identification of suspicious activity during remote interviews using live video, audio, and browser events. The implementation must accept real-time inputs, process them with practical latency, maintain session continuity, and convert heterogeneous signals into an understandable risk outcome for the interviewer.
+
+This problem is difficult because the signals do not have equal reliability. Some events are critical by nature, such as multiple faces or mobile phone detection. Others are softer indicators, such as looking away for a brief interval or temporary audio anomalies. The project must therefore balance responsiveness, interpretability, and tolerance for false alarms.
+
+\section{Objectives}
+The objectives of the present project report and of the underlying system are as follows:
+\begin{enumerate}
+  \item To document the architecture and workflow of the AI cheating detection repository found in the current directory.
+  \item To explain how the backend processes video, audio, and session events in real time.
+  \item To describe the role of the candidate and interviewer frontends in the complete interaction loop.
+  \item To analyze how risk scores are fused from multiple sources and surfaced as alerts.
+  \item To compare the initial and revised versions of the codebase already present in the repository.
+  \item To present testing, validation, implementation strengths, and practical limitations without compressing the report length.
+\end{enumerate}
+
+\section{Scope of the Work}
+The scope of this report is limited to the repository content available in the current workspace. It covers the primary backend in \texttt{backend}, the alternate implementation in \texttt{backend\_v2}, the main frontend structures under \texttt{frontend}, the revised frontend applications under \texttt{frontend\_v2}, representative tests, model files, logs, and supporting markdown notes. The report does not claim externally benchmarked accuracy values unless those values are actually computed and stored inside the repository. Instead, it focuses on implementation-driven understanding.
+
+\section{Organization of the Report}
+The remaining chapters are organized as follows. Chapter 2 reviews related implementation patterns and the evolution visible across versioned folders. Chapter 3 studies the existing and proposed system architecture. Chapter 4 explains the methodology used by the project to process video, audio, and risk aggregation. Chapter 5 presents design and implementation details, including module breakdown and data flow. Chapter 6 discusses observed outputs, operational behavior, and practical interpretation. Chapter 7 covers testing and validation. Chapter 8 concludes the report and outlines future improvements.
+
+\chapter{LITERATURE REVIEW}
+\section{Introduction}
+In the context of this repository, a conventional paper-only literature review is less useful than a code-oriented review of implemented approaches. The project itself already contains traces of system evolution: original and revised backends, original and revised frontends, direct REST routes as well as socket pipelines, heuristic modules as well as model-oriented modules, and both session-level and frame-level analysis strategies. This chapter therefore reviews the implementation families represented within the repository.
+
+\section{Evolution of the Repository}
+The folder structure shows that the system evolved through at least two visible stages. The \texttt{backend} directory contains a richer modularized pipeline with multiple routes and services, while \texttt{backend\_v2} provides a leaner version centered on \texttt{vision\_service\_v2.py}, \texttt{video\_routes.py}, and socket-driven audio and session handling. Likewise, the \texttt{frontend} directory contains candidate and interviewer applications along with older public-source pages, while \texttt{frontend\_v2} offers cleaner split applications for candidate and dashboard roles. This indicates a move from experimentation toward clearer separation of responsibilities.
+
+\section{Review of Vision Approaches in the Codebase}
+The repository includes more than one style of vision monitoring. In the main backend, the video route coordinates head-pose estimation, fallback face analysis, session-aware looking-away logic, stable vision analysis, evidence capture, and socket emission. In the V2 backend, a simplified YOLO-based service counts people, detects cell phones, infers face-centeredness, and saves screenshots when violations occur. Together these modules reveal an important design pattern: start with direct object detection, then enrich it with temporal and semantic interpretation.
+
+\section{Review of Audio Approaches in the Codebase}
+The audio pipeline follows the same layered philosophy. Basic audio analysis appears in helper services such as \texttt{audio\_ai.py}, where heuristics over spectral flatness and zero-crossing rate yield an AI-voice confidence estimate. The richer path appears in \texttt{audio\_routes.py} and \texttt{audio\_socket.py}, where uploaded chunks are normalized, buffered, transcribed, passed through AI-text detection, smoothed over time, and finally integrated into the fusion state. This progression from isolated heuristics to session-aware streaming is one of the most notable architectural trends in the repository.
+
+\section{Frontend Patterns Across Versions}
+The frontends also show two design styles. The early applications are direct and functional: candidate pages stream webcam and microphone data, while dashboard pages show alerts and scores. The more elaborate interviewer dashboard adds live status, AI gauges, evidence previews, timeline graphs, and final reports. Across both versions, the dominant frontend pattern is real-time monitoring rather than delayed report upload.
+
+\section{Version-Wise Component Survey}
+Table \ref{tab:version_survey} summarizes the most important code tracks visible in the repository.
+
+\begin{table}[H]
+\centering
+\caption{Version-wise survey of major repository components}
+\label{tab:version_survey}
+\begin{tabularx}{\textwidth}{p{2.8cm}p{2.6cm}X}
+\toprule
+\textbf{Folder} & \textbf{Role} & \textbf{Key Observation}\\
+\midrule
+\texttt{backend} & Main backend & Rich modular structure with routes, services, socket handlers, fusion, evidence, and final report logic\\
+\texttt{backend\_v2} & Alternate backend & Simplified real-time version with compact vision service and reduced blueprint surface\\
+\texttt{frontend} & Mixed frontend space & Contains candidate and interviewer apps plus older public-facing React source layout\\
+\texttt{frontend\_v2} & Revised frontend track & Separate candidate-app and interviewer-dashboard projects with clearer package boundaries\\
+\texttt{backend/ml} & Audio-model assets & Includes AI-voice training artifacts and model-related files\\
+\texttt{tests and standalone test files} & Validation layer & Test scripts focus on imports, alert levels, pipeline checks, and integration verification\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Component-Wise Comparative Analysis}
+The comparative lesson from the repository is that no single detector solves the proctoring problem alone. Vision modules identify physical irregularities, audio modules infer assistance patterns, and frontend/browser hooks capture tab-based suspicious behavior. The main backend attempts to unify these through \texttt{fusion\_state.py}, \texttt{fraud\_aggregator.py}, and \texttt{final\_report\_engine.py}. This is a stronger systems perspective than treating each detector as independent.
+
+\section{Research Gap and Practical Gap}
+The strongest practical gap visible in the repository is not conceptual but engineering-related. The codebase already covers many suspicious-behavior signals, but the implementations are unevenly mature. Some components are production-oriented and session-aware, while others remain placeholders or heuristic approximations. There is also duplication between V1 and V2 code tracks. This creates a realistic research gap for future work: improving calibration, consolidating versions, benchmarking false positives, and formalizing decision policies across modalities.
+
+\chapter{SYSTEM ANALYSIS}
+\section{Introduction}
+System analysis examines what the repository currently provides, what limitations remain, and how the present design attempts to overcome them. Because the codebase is active and layered, the analysis must distinguish between the baseline implementation and the broader architecture that the combined repository now supports.
+
+\section{Existing System}
+At its core, the existing system is a remote proctoring platform with three primary streams. The first is video analysis, where candidate frames are posted or streamed to the backend and evaluated for face presence, multiple persons, phone presence, and gaze or head-pose irregularities. The second is audio analysis, where microphone data is buffered, normalized, and scored for AI-generated or suspicious patterns. The third is session monitoring, where tab-switch events and timeline events are recorded as contextual indicators.
+
+The interviewer dashboard receives these results through socket events. It displays live risk updates, fraud alerts, score widgets, and final reports. This makes the system not only a detector but a monitoring console.
+
+\section{Limitations of the Existing System}
+Although the repository is functionally rich, several limitations are visible from the source.
+
+\subsection{Heuristic Dependence}
+Some modules still rely on hand-crafted thresholds, such as brightness cutoffs, score bands, RMS-based silence detection, and simple spectral rules. These are useful for prototyping but may require dataset-specific tuning.
+
+\subsection{Version Duplication}
+The presence of both \texttt{backend} and \texttt{backend\_v2}, as well as multiple frontend tracks, indicates an evolving codebase with overlapping responsibilities. This can create maintenance friction and make deployment decisions less straightforward.
+
+\subsection{Partial Placeholder Logic}
+Certain components explicitly describe themselves as placeholders or model-ready stubs. For example, some AI voice logic computes heuristic confidence where a trained model could later be substituted. This is acceptable for a student project but should be acknowledged honestly.
+
+\subsection{Limited Persistence Uniformity}
+The code suggests optional persistence behavior. Database support may be available in some contexts and absent in others. As a result, final reports and session data may not always follow one standardized storage path.
+
+\subsection{Operational Consistency Risks}
+Real-time systems depend on stable frame rates, audio buffering, and session synchronization. Since the repository includes both HTTP routes and sockets, consistency across these paths becomes an important concern, especially under latency or connection issues.
+
+\section{Proposed System}
+The proposed system, inferred from the combined design visible across the repository, is a unified multi-modal proctoring platform with the following characteristics:
+\begin{enumerate}
+  \item Session-centric state management.
+  \item Continuous video and audio ingestion.
+  \item Separate candidate and interviewer interfaces.
+  \item Evidence capture for high-risk visual events.
+  \item Fraud-score fusion across modalities.
+  \item Real-time alerting and final session summarization.
+\end{enumerate}
+
+This proposed system is not speculative; it is the direction that the main backend and revised frontend already point toward. It improves on the more isolated or simplified modules by giving each session a complete lifecycle from start to monitoring to finalization.
+
+\section{Existing and Proposed System Comparison}
+Table \ref{tab:existing_proposed} compares the baseline and the broader target behavior already implied by the repository.
+
+\begin{table}[H]
+\centering
+\caption{Comparison between existing and proposed repository behavior}
+\label{tab:existing_proposed}
+\begin{tabularx}{\textwidth}{p{4.1cm}p{4.2cm}X}
+\toprule
+\textbf{Aspect} & \textbf{Existing Behavior} & \textbf{Proposed / Consolidated Direction}\\
+\midrule
+Vision analysis & Multiple modules with mixed complexity & Unified session-aware vision pipeline with consistent evidence rules\\
+Audio analysis & Mix of heuristics, chunk upload, and socket buffering & Standardized streaming audio pipeline with calibrated scoring\\
+Frontend design & Multiple tracks and UI styles & Stable candidate and interviewer applications with shared contracts\\
+Risk scoring & Combination of direct max-score rules and weighted aggregation & One consistent fusion policy with clear thresholds\\
+Session persistence & Partially optional & Structured storage for events, evidence, and verdicts\\
+Maintainability & Spread across V1 and V2 folders & Reduced duplication and clearer deployment path\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Feasibility Analysis}
+The project is technically feasible because all major building blocks are already represented in code. Flask and Socket.IO handle communication. OpenCV and YOLO support frame analysis. librosa and NumPy support audio feature computation. React provides the user interfaces. The repository already includes pretrained model files and local evidence storage paths, which reduces external dependency complexity for demonstration.
+
+Operationally, the system is also feasible because it uses relatively standard developer tooling and can run on commodity hardware, especially when lightweight YOLO variants are used. The presence of V2 modules further suggests active attempts to simplify or optimize heavier components.
+
+\section{Requirements Analysis}
+\subsection{Functional Requirements}
+The main functional requirements visible in the repository are listed in Table \ref{tab:functional_requirements}.
+
+\begin{table}[H]
+\centering
+\caption{Functional requirements derived from the repository}
+\label{tab:functional_requirements}
+\begin{tabularx}{\textwidth}{p{1.1cm}X}
+\toprule
+\textbf{ID} & \textbf{Requirement}\\
+\midrule
+FR1 & The system shall create and manage interview sessions.\\
+FR2 & The candidate application shall stream webcam frames for analysis.\\
+FR3 & The candidate application shall stream microphone audio or upload audio chunks.\\
+FR4 & The backend shall detect face absence, multiple faces, and mobile phones.\\
+FR5 & The backend shall evaluate gaze or head-pose related looking-away behavior.\\
+FR6 & The backend shall analyze speech for suspicious AI-assisted or synthetic indicators.\\
+FR7 & The system shall capture evidence images for medium or critical visual violations.\\
+FR8 & The interviewer dashboard shall receive live risk updates and fraud alerts.\\
+FR9 & The backend shall aggregate scores and generate a final report at session end.\\
+FR10 & The system shall support reset and statistics endpoints for session maintenance.\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Non-Functional Requirements}
+Important non-functional requirements include real-time responsiveness, modularity, readable logging, maintainability across versions, tolerance for partial failures, and interpretability of alerts. Since the system may be used in a supervised decision-making context, it must explain risk rather than only output a number.
+
+\chapter{METHODOLOGY}
+\section{Introduction}
+The methodology of the project is event-driven and multi-modal. Instead of running one offline inference pass over a static dataset, the repository processes live session information in small, repeated updates. This chapter explains how data enters the system, how the analysis stages operate, and how the outputs are fused into interview-level decisions.
+
+\section{Research and Implementation Design}
+The implementation follows a service-oriented design inside a Flask application factory. Routes expose HTTP endpoints for frame and audio processing, while Socket.IO handlers support continuous streaming and real-time broadcast to connected frontends. The use of separate service modules for vision, audio, fusion, and report generation allows the system to evolve without collapsing into one file.
+
+\section{Input Collection}
+\subsection{Video Input Collection}
+Video frames are collected from the candidate side and sent to the backend either through explicit route calls or through socket-integrated flows, depending on the version of the application in use. The backend decodes the image, resizes it, and pushes it into analysis functions that look for obstruction, people count, phone presence, and head-pose irregularities.
+
+\subsection{Audio Input Collection}
+Audio arrives as uploaded files or as socket-streamed chunks. The repository normalizes the data, converts stereo to mono when needed, checks silence, stores recent speech buffers, and then performs transcription or direct audio-feature analysis. This methodology is practical because it avoids waiting for a whole interview recording before beginning inference.
+
+\subsection{Session Event Collection}
+Tab switches and session lifecycle transitions are also part of the methodology. The frontends emit blur or session-control events, and the backend records them as signals that contribute to the final risk picture. This is important because cheating behavior can occur outside what the camera and microphone directly reveal.
+
+\section{Video Preprocessing}
+Video preprocessing includes base64 decoding, conversion to NumPy arrays, OpenCV image reconstruction, optional resizing, grayscale brightness checks, and evidence-image writing. The preprocessing step also serves as a defensive barrier: empty or invalid frames are handled before deeper analysis runs.
+
+\section{Vision Analysis Methodology}
+The main backend route demonstrates a layered vision methodology:
+\begin{enumerate}
+  \item Detect camera obstruction or empty frames.
+  \item Estimate head pose and face-related status.
+  \item Fall back to simpler detection when richer detection fails.
+  \item Convert pose results into a stable-vision representation.
+  \item Evaluate face count, phone detection, looking-away duration, and session-specific temporal state.
+  \item Save evidence images when the severity justifies it.
+\end{enumerate}
+
+The V2 methodology is more compact but follows the same idea. It uses YOLO detections directly, counts persons, checks for class-67 mobile phones, and uses the position of the primary person box as a proxy for looking away.
+
+\section{Audio Analysis Methodology}
+The audio methodology is similarly layered. In the route-based flow, uploaded files are parsed, standardized, and passed to an enhanced audio engine that returns detection type, alert level, cheating score, silence ratio, and background-noise information. In the socket-based flow, audio chunks are buffered, screened for silence, grouped into speaking windows, transcribed, and then passed into AI-text detection functions that generate a suspiciousness score and explanatory reasons.
+
+\section{Fusion Methodology}
+The repository contains two related fusion ideas. One is a session-state model in which video score, audio score, voice drift, and tab switches are stored and aggregated over time. The other is a session-finalization model in which weighted combinations of video, audio, and tab-switch indicators produce a final score and violation band. Together these indicate a methodology in which momentary events update a live state, while a cleaner final verdict is computed at the end.
+
+\section{Scoring and Thresholding}
+The thresholding policy is discrete and interpretable. Scores are mapped into labels such as low, medium, high, and critical. Critical outcomes are reserved for events like mobile-phone detection, multiple faces, or strong AI-audio suspicion. Medium outcomes cover shorter-term or less conclusive events such as brief looking-away behavior. This is an important methodological decision because it preserves explainability for the end user.
+
+\section{Evidence and Timeline Methodology}
+When a medium or critical event occurs, the backend saves screenshots to evidence folders using session-aware filenames. Timeline data is also accumulated in in-memory state structures so that the dashboard can later display progression over time. This creates a session narrative rather than only a single terminal score.
+
+\section{Workflow Description}
+Fig. \ref{fig:workflow} conceptually summarizes the project workflow.
+
+\begin{figure}[H]
+\centering
+\safeimage[width=0.84\textwidth]{system_workflow.png}
+\caption{Overall workflow of the AI cheating detection system from candidate input to interviewer report.}
+\label{fig:workflow}
+\end{figure}
+
+The workflow begins when the candidate application starts webcam and microphone capture. Video frames and audio chunks are sent to the backend. Vision and audio services analyze these streams in parallel, while tab-switch events are counted as behavioral context. Session state is updated continuously. The interviewer dashboard subscribes to socket events and displays scores, alerts, and evidence. When the session ends, the backend computes the final report and emits a summary payload.
+
+\chapter{DESIGN AND IMPLEMENTATION}
+\section{Introduction}
+This chapter translates the repository into a system-design narrative. The goal is not merely to restate folder names, but to show how the major parts of the code interact to form a coherent interview-monitoring platform.
+
+\section{System Architecture Overview}
+The architecture is divided into four broad layers:
+\begin{enumerate}
+  \item Input layer: webcam, microphone, and browser tab events from the candidate side.
+  \item Processing layer: Flask routes, socket handlers, and analysis services.
+  \item Fusion layer: session state, score aggregation, and timeline generation.
+  \item Presentation layer: interviewer dashboard, live alerts, evidence previews, and final reports.
+\end{enumerate}
+
+Fig. \ref{fig:architecture} illustrates this architecture at a high level.
+
+\begin{figure}[H]
+\centering
+\safeimage[width=0.86\textwidth]{architecture_overview.png}
+\caption{High-level architecture of the repository including candidate app, backend services, and interviewer dashboard.}
+\label{fig:architecture}
+\end{figure}
+
+\section{Project Structure}
+Table \ref{tab:project_structure} summarizes the repository structure most relevant to implementation.
+
+\begin{table}[H]
+\centering
+\caption{Important folders and their roles in the project}
+\label{tab:project_structure}
+\begin{tabularx}{\textwidth}{p{3.2cm}X}
+\toprule
+\textbf{Path} & \textbf{Purpose}\\
+\midrule
+\texttt{backend/} & Main Flask backend with routes, services, socket handlers, tests, evidence, and model assets\\
+\texttt{backend/app/routes/} & HTTP endpoints for video, audio, sessions, dashboards, AI detection, and timelines\\
+\texttt{backend/app/services/} & Analysis and helper services for vision, audio, fusion, reports, and supporting logic\\
+\texttt{backend/app/socket\_handlers/} & Real-time event handlers for audio, session, tab, and fusion events\\
+\texttt{backend\_v2/} & Streamlined alternate backend implementation\\
+\texttt{frontend/candidate-app/} & Candidate-side React application for webcam, microphone, and tab tracking\\
+\texttt{frontend/interviewer-dashboard/} & Dashboard for session monitoring, alerts, graphs, and final reporting\\
+\texttt{frontend\_v2/} & Revised React apps with separate package boundaries for candidate and dashboard\\
+\texttt{logs/} and \texttt{backend/logs/} & Runtime logs and recorded audio artifacts\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Frontend, Backend, and Analysis Perspectives}
+\subsection{Frontend Perspective}
+The candidate frontend is responsible for sending the live media streams and tab-switch events that make monitoring possible. Its design is intentionally simple because low friction is important for the interviewee. The interviewer dashboard, in contrast, is information-rich. It emphasizes current risk level, score breakdown, live alerts, evidence thumbnails, and final reports.
+
+\subsection{Backend Perspective}
+The backend uses a Flask application factory, CORS configuration, and Socket.IO initialization. Blueprints separate major concerns such as video, audio, AI detection, timeline, dashboard, and session control. This separation is strong enough that each route file has a clear thematic purpose.
+
+\subsection{Analysis Perspective}
+From the analysis perspective, the project combines detector outputs with temporal logic. For example, looking away is not treated as a one-frame binary event. It is tracked across time and escalated after a duration threshold. Similarly, audio chunks are buffered before transcription and AI-text scoring, which helps smooth noise and prevents overreaction to single short chunks.
+
+\section{Module Breakdown}
+\subsection{Application Bootstrap Module}
+\texttt{backend/run.py} and \texttt{backend/app/\_\_init\_\_.py} initialize the backend, configure logging, register safe globals for YOLO compatibility, create the Flask application, initialize the database and Socket.IO, and register blueprints. The V2 backend mirrors this with a more compact startup path.
+
+\subsection{Video Analysis Module}
+The video analysis module spans \texttt{video\_routes.py}, head-pose estimation services, fallback detection, and the stable vision engine. This module is responsible for interpreting each frame not just as an image but as evidence of interview conduct.
+
+\subsection{Audio Analysis Module}
+The audio stack includes route-based analysis, socket-based continuous chunk handling, AI voice heuristics, transcript-driven AI text detection, and session-level score emission. It is one of the most dynamic parts of the repository because it mixes streaming, NLP-style reasoning, and behavioral scoring.
+
+\subsection{Fusion Module}
+The fusion module stores video score, audio score, tab switches, voice embedding drift, timeline data, and maximum session risk. It transforms separate detections into a coherent interview-level state. Without this module, the project would remain a set of disconnected detectors.
+
+\subsection{Reporting Module}
+The reporting layer includes fraud-score explanation, final report generation, answer timeline access, and dashboard payload shaping. It is significant because the end user of the system is not a model but an interviewer who needs a readable summary.
+
+\subsection{Frontend Interaction Module}
+The frontend interaction module includes dashboard cards, score displays, risk meters, alert feeds, AI gauges, and session control buttons. On the candidate side, it includes webcam sending, microphone capture, and tab tracking.
+
+\section{Data Flow}
+The complete data flow is described in Table \ref{tab:data_flow}.
+
+\begin{table}[H]
+\centering
+\caption{Data flow through the main system}
+\label{tab:data_flow}
+\begin{tabularx}{\textwidth}{p{3cm}p{3.2cm}X}
+\toprule
+\textbf{Stage} & \textbf{Input/Output} & \textbf{Description}\\
+\midrule
+Candidate capture & Webcam, microphone, browser focus events & Candidate app acquires live inputs from the local browser session\\
+Transport & HTTP payloads and socket events & Media data and events are transmitted to the backend\\
+Vision analysis & Decoded frames to violation result & Backend detects face-related and device-related irregularities\\
+Audio analysis & Audio chunks to suspiciousness score & Backend buffers, transcribes, and scores speech behavior\\
+Fusion update & Per-event scores to session state & Session state stores and combines multiple risk signals\\
+Dashboard broadcast & Session state to UI alerts & Interviewer dashboard receives live updates via Socket.IO\\
+Finalization & Session state to final report & Backend creates verdict, reasons, scores, and evidence list\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{API and Socket Flow}
+The route design indicates a hybrid communication model. REST endpoints are used for explicit actions such as starting sessions, analyzing uploads, resetting sessions, and finalizing reports. Sockets handle continuous interactions such as audio chunk streaming, tab-switch notifications, AI live updates, risk updates, fraud alerts, and final report broadcast. This hybrid architecture is appropriate because it keeps transactional actions separate from high-frequency streaming actions.
+
+\section{Implementation Highlights}
+\subsection{YOLO Compatibility Handling}
+One notable implementation detail is the explicit safe-global registration for YOLO-related classes before the Flask app is created. This addresses PyTorch serialization and compatibility concerns and shows that the codebase has already encountered practical environment issues during development.
+
+\subsection{Evidence Capture Design}
+The repository does not merely compute scores. It also writes images to evidence folders, names them according to sessions and event types, and links them back into alerts. This increases auditability and makes the system more useful for human review.
+
+\subsection{Streaming-Friendly Audio Logic}
+The audio socket handler uses silence detection, score smoothing, buffered speech assembly, and periodic emission intervals. These choices show an understanding that streaming systems should avoid flooding the dashboard or overreacting to every tiny chunk.
+
+\section{Code Explanation of Core Scripts}
+\subsection{\texttt{backend/run.py}}
+This file acts as the main application entry point. It configures logging, registers safe classes required by modern YOLO loading, imports the Flask app factory, and launches the Socket.IO server on port 5000. Its role is small but operationally essential.
+
+\subsection{\texttt{backend/app/routes/video\_routes.py}}
+This route file is the central video-orchestration layer. It validates frame input, decodes the image, checks for obstructions, invokes pose estimation, uses fallback logic when necessary, updates the fusion state, emits risk and fraud events, saves evidence, and exposes reset and statistics endpoints.
+
+\subsection{\texttt{backend/app/socket\_handlers/audio\_socket.py}}
+This file is the clearest example of real-time audio orchestration in the repository. It manages chunk decoding, silence detection, speech buffering, transcription, AI text detection, smoothing, state updates, and socket emission.
+
+\subsection{\texttt{frontend/interviewer-dashboard/src/components/Dashboard.jsx}}
+This frontend file coordinates the interviewer-side experience. It creates sessions, starts and stops monitoring, listens for socket events, updates scores and alerts, shows live evidence, and renders final report components. It is the main presentation surface of the project.
+
+\section{Deployment Design Considerations}
+The repository is aimed at local development and demonstration, but several deployment considerations are already visible. These include CORS handling, socket buffer-size configuration, model file placement, static evidence serving, and separation between candidate and interviewer applications. The main remaining deployment challenge is version consolidation and environment reproducibility.
+
+\chapter{RESULTS AND DISCUSSION}
+\section{Introduction}
+Because the repository is primarily an implementation project rather than a completed benchmark study with stored experiment tables, the results discussed here are implementation-oriented. They concern what the system is capable of producing, how alerts are surfaced, and what patterns can reasonably be inferred from the code.
+
+\section{Observed Video Detection Outcomes}
+The video pipeline is designed to produce at least five meaningful outcome families:
+\begin{enumerate}
+  \item Normal presence with low risk.
+  \item No face detected.
+  \item Looking away or head-pose deviation.
+  \item Multiple faces detected.
+  \item Mobile phone detected.
+\end{enumerate}
+
+These outcomes are meaningful because they correspond directly to interviewer concerns. The system also differentiates severity, allowing brief behavioral deviations to remain medium while reserving critical status for more serious events.
+
+\section{Observed Audio Detection Outcomes}
+The audio path yields several operational outputs: speaking versus silence status, AI-versus-human score percentage, transcript snippets, reasons for suspicion, and audio contribution to the final score. This is especially useful in remote interviews, where visual compliance alone does not rule out external assistance.
+
+\section{Real-Time Dashboard Behavior}
+The interviewer dashboard is designed to make the results actionable. It displays live risk level, separate video and audio scores, final score, tab-switch counts, alert cards, evidence images, AI gauges, and final session reports. This design turns technical detection outputs into user-facing operational signals.
+
+\section{Discussion of Fusion Logic}
+The codebase uses both weighted and max-based fusion ideas. One module calculates a weighted combination of video, audio, and tab-switch contributions, while another uses the maximum of video and audio scores plus tab penalties. This reveals an important design discussion inside the repository: should the final risk reflect cumulative suspicion or worst-case suspicion? Each policy has trade-offs. Weighted fusion is smoother, while max-based fusion reacts strongly to one serious signal.
+
+\section{Discussion of Version Evolution}
+The presence of V1 and V2 code shows that the project was not built in a single pass. The V2 backend is compact and easier to reason about, while the main backend is broader and more expressive. This can be interpreted positively: the team explored both simplification and feature expansion. However, it also means future maintainers must eventually decide which path becomes canonical.
+
+\section{Interface-Level Interpretation}
+The dashboard code indicates a desire to keep the interviewer in control. Alerts are not hidden behind logs; they are placed directly in the interface with color-coded severity and supporting media when available. This improves trust in the system because the operator can inspect evidence rather than rely only on an opaque score.
+
+\section{Strengths of the Current Repository}
+The project demonstrates several strengths:
+\begin{enumerate}
+  \item Clear separation of backend routes, services, and socket handlers.
+  \item Real-time end-to-end thinking from media ingestion to UI feedback.
+  \item Multi-modal interpretation instead of single-signal monitoring.
+  \item Evidence capture and final reporting support.
+  \item Presence of tests and implementation notes that aid understanding.
+\end{enumerate}
+
+\section{Limitations and Risks}
+The discussion is incomplete without acknowledging repository risks. Some model logic is heuristic or placeholder in nature. Some paths may behave differently across versions. The absence of standardized benchmark outputs inside the repository means accuracy claims must remain modest. Real-world robustness would require larger evaluation datasets, calibrated thresholds, and stronger persistence and deployment tooling.
+
+\section{Illustrative Output Placeholders}
+To preserve the style and page volume of the sample report, figures are reserved for screenshots, alert timelines, and architecture outputs that can be inserted later if generated.
+
+\begin{figure}[H]
+\centering
+\safeimage[width=0.82\textwidth]{dashboard_live_alerts.png}
+\caption{Illustrative interviewer dashboard output with live alerts and evidence thumbnails.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\safeimage[width=0.82\textwidth]{risk_timeline_graph.png}
+\caption{Illustrative risk timeline graph for a monitored session.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\safeimage[width=0.82\textwidth]{final_report_output.png}
+\caption{Illustrative final report output emitted at session finalization.}
+\end{figure}
+
+\chapter{TESTING AND VALIDATION}
+\section{Introduction}
+Testing in this project is partly explicit and partly structural. Explicitly, the repository contains several test scripts such as \texttt{test\_imports.py}, \texttt{test\_fallback.py}, \texttt{test\_alert\_levels.py}, \texttt{test\_pipeline.py}, \texttt{test\_integration.py}, \texttt{test\_real\_frame.py}, and \texttt{test\_yolo.py}. Structurally, many route and service files already include defensive checks for empty inputs, decode failures, missing data, and unsupported states.
+
+\section{Testing Objectives}
+The main testing objectives are:
+\begin{enumerate}
+  \item To verify backend imports and environment readiness.
+  \item To validate frame and audio ingestion pipelines.
+  \item To ensure alert levels map correctly to score bands.
+  \item To test fallback behavior when richer detectors fail.
+  \item To confirm that integration between routes, sockets, and state management does not break session flow.
+\end{enumerate}
+
+\section{Unit Testing Perspective}
+At the unit level, the repository tests isolated behaviors such as import availability and alert logic. Even when a formal test framework is not uniformly used across all files, these scripts still provide targeted checks for the most failure-prone areas of the project: environment compatibility, fallback paths, and core signal mappings.
+
+\section{Integration Testing}
+Integration testing is particularly important because the system is highly interactive. Video routes depend on service outputs. Audio sockets depend on transcription and AI-text functions. Frontends depend on risk update emissions. Session finalization depends on the accumulated fusion state. A failure in any one of these steps can prevent the dashboard from presenting a coherent result.
+
+\section{Validation of Data Integrity}
+Data integrity validation in this repository means checking that incoming base64 media is decoded correctly, session identifiers remain consistent, evidence images are written to the proper folder, and timeline or report payloads use serializable values. The \texttt{sanitize} and \texttt{normalize} helpers in the backend reflect this need.
+
+\section{Metric Validation}
+Even though the repository is not an academic benchmark suite, score validation still matters. The video score, audio score, final score, confidence estimate, and violation level must remain internally consistent. If a module emits a critical label but a low score, the dashboard becomes misleading. The code attempts to avoid this by mapping severity levels to specific numeric bands.
+
+\section{Testing Under Edge Cases}
+\subsection{No Frame Case}
+If the frontend sends no frame or an invalid frame payload, the video route should return a controlled error or neutral status rather than crashing. The repository includes checks for absent frame data and decode failures.
+
+\subsection{No Audio Case}
+Audio routes validate whether the request contains an audio file and a session ID. Empty uploads are rejected early, which is essential for stability.
+
+\subsection{Silence-Only Audio Case}
+The socket audio handler explicitly detects silence using an RMS threshold and emits a waiting status. This prevents speech-analysis logic from over-processing non-speech segments.
+
+\subsection{Detector Failure Case}
+The video route can fall back to simpler face analysis when the richer head-pose or YOLO-based logic returns an error. This is a strong validation feature because it prioritizes graceful degradation over hard failure.
+
+\section{Representative Test Cases}
+Table \ref{tab:test_cases_project} lists representative validation scenarios for the present repository.
+
+\begin{table}[H]
+\centering
+\caption{Representative test cases for the AI cheating detection project}
+\label{tab:test_cases_project}
+\begin{tabularx}{\textwidth}{p{2.5cm}p{4.4cm}X}
+\toprule
+\textbf{Test Type} & \textbf{Scenario} & \textbf{Expected Outcome}\\
+\midrule
+Import test & Launch backend imports under current environment & Core modules load without fatal import failure\\
+Video route test & Submit valid base64 frame & Video score and violation level are returned\\
+Video fallback test & Force primary detector failure & Fallback estimator handles frame without crash\\
+Audio route test & Upload valid waveform with session ID & Structured audio analysis JSON is returned\\
+Silence test & Stream near-silent audio chunks & System emits waiting or non-speaking state\\
+Socket integration test & Emit audio and tab events during session & Dashboard receives risk updates and alerts\\
+Finalization test & End a session with accumulated state & Final report payload includes scores, verdict, and evidence list\\
+Evidence test & Trigger phone or multiple-face event & Screenshot or evidence path is stored and surfaced\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Performance Validation}
+The repository is clearly optimized for practical responsiveness rather than heavyweight offline batch processing. Lightweight YOLO models, session-local state, socket intervals, and small candidate applications all point toward an assumption of live use. That said, real deployment validation would still require measurements of frame throughput, audio lag, and server-side resource usage.
+
+\section{Validation of Results Consistency}
+Consistency is supported by the fact that multiple files share similar severity vocabularies such as low, medium, high, and critical. The project also tends to include reasons alongside scores, which makes it easier to detect whether a score is plausible. However, the coexistence of multiple fusion logics suggests that future cleanup should further standardize how final risk is computed.
+
+\section{Discussion of Validation Outcome}
+Overall, the testing and validation outlook is positive for a project of this nature. The repository includes explicit test files, defensive programming patterns, reset endpoints, and fallback strategies. These are strong signs of implementation maturity. The main remaining validation needs are quantitative benchmarking, end-to-end automated test execution, and unification of duplicate version tracks.
+
+\chapter{CONCLUSION AND FUTURE WORK}
+\section{Conclusion}
+This report transformed the supplied sample \LaTeX{} structure into a new long-form project report focused entirely on the current repository. The analyzed workspace implements an AI-based cheating detection and remote interview proctoring platform using Flask, Socket.IO, OpenCV, YOLO, librosa-based audio analysis, and React interfaces for both candidate and interviewer roles. The project is not merely a collection of isolated scripts. It is a session-oriented system that receives live media, analyzes multiple suspicion signals, stores evidence, fuses scores, and presents human-readable outputs through an operational dashboard.
+
+The repository demonstrates strong practical understanding of real-time system design. It includes application bootstrapping, route modularity, service separation, version evolution, UI feedback loops, evidence capture, and final report generation. At the same time, it honestly reflects the realities of an in-progress engineering project, including heuristic components, placeholder logic, duplicated versions, and incomplete standardization across modules. These are not weaknesses to hide; they are part of the authentic technical story of the repository.
+
+\section{Key Contributions}
+The major contributions visible in the current project directory are summarized below:
+\begin{enumerate}
+  \item A multi-modal backend capable of analyzing video, audio, and session events.
+  \item Separate candidate and interviewer applications for live remote-proctoring workflows.
+  \item Session-aware fraud scoring, alert emission, and final-report generation.
+  \item Evidence-image capture for serious visual violations.
+  \item Versioned implementation tracks that reveal iterative system improvement.
+  \item Supporting test scripts and notes that increase maintainability and explain intent.
+\end{enumerate}
+
+\section{Future Work}
+The most important future work is consolidation. The repository would benefit from selecting a single canonical backend and frontend path, standardizing the fusion policy, and replacing heuristic placeholder logic with empirically validated models wherever possible. Additional improvements could include persistent structured storage for session histories, automated end-to-end test coverage, improved calibration of fraud thresholds, stronger audio-model training, browser-hardening measures, and deployment documentation for production environments.
+
+\section{Final Remark}
+The current project directory contains enough real implementation detail to support a full academic report without shrinking the page count. By preserving the sample document's extensive structure and annexure style while replacing the content with repository-specific analysis, this report turns the workspace into a formally documented engineering project suitable for review, extension, and presentation.
+
+\frontchapter{REFERENCES}
+\begin{enumerate}[leftmargin=0.4in]
+  \item \texttt{backend/README.md} --- repository note describing backend responsibilities such as video processing, audio analysis, AI voice detection, speaker verification, fraud scoring, and database storage.
+  \item \texttt{backend/requirements.txt} --- backend dependency list including Flask, Flask-SocketIO, OpenCV, Ultralytics, librosa, NumPy, scikit-learn, PyTorch, and Google generative AI packages.
+  \item \texttt{backend/run.py} --- main backend runtime entry point with YOLO compatibility handling and Socket.IO startup.
+  \item \texttt{backend/app/\_\_init\_\_.py} --- Flask application factory, blueprint registration, database initialization, and evidence serving logic.
+  \item \texttt{backend/app/routes/video\_routes.py} --- primary video-analysis route and event emission logic.
+  \item \texttt{backend/app/routes/audio\_routes.py} --- route-based audio upload analysis and AI text detection endpoints.
+  \item \texttt{backend/app/routes/ai\_detection\_routes.py} --- session start, timeline retrieval, finalization, and final report emission logic.
+  \item \texttt{backend/app/socket\_handlers/audio\_socket.py} --- real-time streaming audio analysis pipeline.
+  \item \texttt{backend/app/services/stable\_vision\_engine.py} --- session-aware vision analysis and screenshot logic.
+  \item \texttt{backend/app/services/fusion\_state.py} --- per-session score storage and aggregation helpers.
+  \item \texttt{backend/app/services/fraud\_aggregator.py} --- weighted final-score and explanation generation.
+  \item \texttt{backend/app/services/final\_report\_engine.py} --- session-end report builder based on detected events and evidence files.
+  \item \texttt{backend\_v2/app/services/vision\_service\_v2.py} --- compact alternate vision-analysis implementation.
+  \item \texttt{frontend/candidate-app/src/CandidateApp.jsx} --- candidate-side webcam, microphone, and tab-tracking interface.
+  \item \texttt{frontend/interviewer-dashboard/src/components/Dashboard.jsx} --- interviewer-side live dashboard for risk, alerts, AI voice percentages, and final reports.
+  \item \texttt{frontend\_v2/candidate-app/package.json} --- revised frontend dependency manifest showing React and Socket.IO client usage.
+\end{enumerate}
+
+\appendix
+\chapter*{ANNEXURE I}
+\addcontentsline{toc}{chapter}{ANNEXURE I - SOURCE CODE}
+\begin{center}
+\bfseries SOURCE CODE
+\end{center}
+This annexure includes representative source files from the current repository. The goal is to preserve the long project-report style of the sample file while grounding the annexure in real code already present in the workspace.
+
+\codeannexsection[language=Python]{A.I.1 Backend Entry Point}{backend/run.py}
+\codeannexsection[language=Python]{A.I.2 Main Video Route}{backend/app/routes/video_routes.py}
+\codeannexsection[language=Python]{A.I.3 Audio Socket Handler}{backend/app/socket_handlers/audio_socket.py}
+\codeannexsection[language=Python]{A.I.4 Stable Vision Engine}{backend/app/services/stable_vision_engine.py}
+\codeannexsection[language=JavaScript]{A.I.5 Candidate Application}{frontend/candidate-app/src/CandidateApp.jsx}
+\codeannexsection[language=JavaScript]{A.I.6 Interviewer Dashboard}{frontend/interviewer-dashboard/src/components/Dashboard.jsx}
+
+\chapter*{ANNEXURE II}
+\addcontentsline{toc}{chapter}{ANNEXURE II - OUTPUT FIGURES AND UI PLACEHOLDERS}
+\begin{center}
+\bfseries OUTPUT FIGURES AND UI PLACEHOLDERS
+\end{center}
+This annexure reserves space for screenshots and plots that can be inserted once the system is run and images are exported. The placeholder-driven layout preserves page volume comparable to the sample report and keeps the report print-friendly.
+
+\section*{A.II.1 Backend Architecture Sketch}
+\addcontentsline{toc}{section}{A.II.1 Backend Architecture Sketch}
+\begin{figure}[H]
+\centering
+\safeimage[width=0.82\textwidth]{backend_architecture.png}
+\caption{Backend architecture including routes, services, socket handlers, and evidence storage.}
+\end{figure}
+
+\section*{A.II.2 Candidate Interface}
+\addcontentsline{toc}{section}{A.II.2 Candidate Interface}
+\begin{figure}[H]
+\centering
+\safeimage[width=0.82\textwidth]{candidate_interface.png}
+\caption{Candidate-side application for webcam, microphone, and browser-event capture.}
+\end{figure}
+
+\section*{A.II.3 Interviewer Dashboard}
+\addcontentsline{toc}{section}{A.II.3 Interviewer Dashboard}
+\begin{figure}[H]
+\centering
+\safeimage[width=0.82\textwidth]{interviewer_dashboard.png}
+\caption{Interviewer dashboard showing risk level, alerts, evidence, and final report panels.}
+\end{figure}
+
+\section*{A.II.4 Evidence Capture Samples}
+\addcontentsline{toc}{section}{A.II.4 Evidence Capture Samples}
+\begin{figure}[H]
+\centering
+\safeimage[width=0.78\textwidth]{evidence_samples.png}
+\caption{Evidence snapshots recorded during critical or medium severity visual violations.}
+\end{figure}
+
+\section*{A.II.5 Session Timeline Visualization}
+\addcontentsline{toc}{section}{A.II.5 Session Timeline Visualization}
+\begin{figure}[H]
+\centering
+\safeimage[width=0.78\textwidth]{session_timeline.png}
+\caption{Timeline plot showing how session risk changes over time.}
+\end{figure}
+
+\chapter*{ANNEXURE III}
+\addcontentsline{toc}{chapter}{ANNEXURE III - PROJECT OUTCOMES AND VERSION SUMMARY}
+\begin{center}
+\bfseries PROJECT OUTCOMES AND VERSION SUMMARY
+\end{center}
+
+\section*{A.III.1 Repository Outcome Summary}
+\addcontentsline{toc}{section}{A.III.1 Repository Outcome Summary}
+The current repository delivers a usable foundation for AI-assisted interview monitoring. It includes real-time video and audio analysis, candidate and dashboard interfaces, event fusion, screenshot evidence generation, and final session reporting. Even where modules remain heuristic or evolving, the system already demonstrates end-to-end workflow coverage.
+
+\section*{A.III.2 Version Evolution Summary}
+\addcontentsline{toc}{section}{A.III.2 Version Evolution Summary}
+\begin{enumerate}
+  \item The main backend provides the richest modular architecture.
+  \item The V2 backend simplifies the vision stack and event routing.
+  \item The frontend folders show both older shared layouts and cleaner split applications.
+  \item The repository captures an authentic progression from prototype logic toward a more structured proctoring system.
+  \item Future cleanup can build directly on the clearer parts already present in V2 while preserving the richer analytics of V1.
+\end{enumerate}
+
+\chapter*{ANNEXURE IV}
+\addcontentsline{toc}{chapter}{ANNEXURE IV - CERTIFICATE AND SUBMISSION PLACEHOLDERS}
+\begin{center}
+\bfseries CERTIFICATE AND SUBMISSION PLACEHOLDERS
+\end{center}
+
+\section*{A.IV.1 Plagiarism Report Placeholder}
+\addcontentsline{toc}{section}{A.IV.1 Plagiarism Report Placeholder}
+This section may be used to insert the final plagiarism or similarity certificate associated with the finished report submission.
+
+\section*{A.IV.2 Deployment / Demo Proof Placeholder}
+\addcontentsline{toc}{section}{A.IV.2 Deployment / Demo Proof Placeholder}
+This section may be used to include screenshots of the running application, demonstration certificates, presentation proof, or any supporting documentation connected to the project submission.
+
+\end{document}

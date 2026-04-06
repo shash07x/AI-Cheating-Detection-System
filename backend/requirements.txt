@@ -1,0 +1,24 @@
+flask==3.0.3
+flask-cors==4.0.0
+flask-socketio==5.3.6
+flask-sqlalchemy==3.1.1
+numpy==1.26.4
+opencv-python==4.9.0.80
+ultralytics>=8.1.24
+librosa==0.10.1
+scipy==1.12.0
+scikit-learn==1.4.2
+pymongo==4.6.0
+python-dotenv==1.0.0
+soundfile==0.12.1
+torch>=2.0.0
+torchvision>=0.15.0
+google-generativeai>=0.8.0
+
+# === NVIDIA Canary Qwen 2.5B (Primary ASR) ===
+# Requires PyTorch 2.6+ and NVIDIA NeMo toolkit
+# pip install "nemo_toolkit[asr,tts] @ git+https://github.com/NVIDIA/NeMo.git"
+
+# === Faster-Whisper (Fallback ASR) ===
+# Requires av C library build tools on Windows
+# pip install faster-whisper==1.0.0
