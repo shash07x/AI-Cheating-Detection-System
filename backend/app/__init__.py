@@ -36,10 +36,14 @@ def create_app():
     # ---------------- INIT EXTENSIONS ----------------
     db.init_app(app)
 
+    # Determine async mode: eventlet for production (gunicorn), threading for local dev
+    import os
+    async_mode = 'eventlet' if os.environ.get('RENDER') else 'threading'
+    
     socketio.init_app(
         app,
         cors_allowed_origins="*",
-        async_mode='threading',  # FIX: Explicitly set to threading
+        async_mode=async_mode,
         ping_timeout=60,
         ping_interval=25,
         max_http_buffer_size=100000000,

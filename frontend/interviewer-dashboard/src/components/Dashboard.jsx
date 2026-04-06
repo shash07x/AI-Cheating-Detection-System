@@ -5,7 +5,7 @@ import AlertPopup from "./AlertPopup";
 import RiskTimelineGraph from "./RiskTimelineGraph";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
-const BACKEND = "http://127.0.0.1:5000";
+const BACKEND = process.env.REACT_APP_BACKEND_URL || "http://127.0.0.1:5000";
 
 const riskColors = {
   low: "#4CAF50",

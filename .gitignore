@@ -26,7 +26,9 @@ backend/env/
 # Environment variables
 .env
 .env.local
+.env.production
 .env.*.local
+!.env.example
 
 # Node.js
 node_modules/

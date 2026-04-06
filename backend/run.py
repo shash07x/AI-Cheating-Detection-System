@@ -69,18 +69,22 @@ logger = logging.getLogger(__name__)
 from app import create_app
 from app.extensions import socketio
 
+# Create the Flask app (needed for gunicorn import: run:flask_app)
+flask_app = create_app()
+
 if __name__ == '__main__':
     logger.info("🚀 Starting AI Proctoring System...")
     
-    flask_app = create_app()
-    
     logger.info("✅ Flask app created successfully")
-    logger.info("📡 Starting SocketIO server on http://127.0.0.1:5000")
+    
+    # Use PORT from environment (Render injects this), default to 5000 for local dev
+    port = int(os.environ.get("PORT", 5000))
+    logger.info(f"📡 Starting SocketIO server on http://0.0.0.0:{port}")
     
     socketio.run(
         flask_app,
         host='0.0.0.0',
-        port=5000,
+        port=port,
         debug=False,
         use_reloader=False,
         allow_unsafe_werkzeug=True

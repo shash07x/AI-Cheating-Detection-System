@@ -60,7 +60,7 @@ export default function WebcamSender({ sessionId }) {
 
     const frame = canvas.toDataURL("image/jpeg", 0.8);
 
-    fetch("http://127.0.0.1:5000/video/analyze", {
+    fetch(`${process.env.REACT_APP_BACKEND_URL || "http://127.0.0.1:5000"}/video/analyze`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

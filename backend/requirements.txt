@@ -3,7 +3,7 @@ flask-cors==4.0.0
 flask-socketio==5.3.6
 flask-sqlalchemy==3.1.1
 numpy==1.26.4
-opencv-python==4.9.0.80
+opencv-python-headless==4.9.0.80
 ultralytics>=8.1.24
 librosa==0.10.1
 scipy==1.12.0
@@ -14,6 +14,8 @@ soundfile==0.12.1
 torch>=2.0.0
 torchvision>=0.15.0
 google-generativeai>=0.8.0
+gunicorn==22.0.0
+eventlet==0.36.1
 
 # === NVIDIA Canary Qwen 2.5B (Primary ASR) ===
 # Requires PyTorch 2.6+ and NVIDIA NeMo toolkit
