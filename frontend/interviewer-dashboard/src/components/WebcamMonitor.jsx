@@ -67,7 +67,7 @@ export default function WebcamMonitor({ active, sessionId, onVideoScore }) {
     const frameBase64 = canvas.toDataURL("image/jpeg", 0.7);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || "http://127.0.0.1:5000"}/video/analyze`, {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || "https://shxsh07-ai-cheating-backend.hf.space"}/video/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
