@@ -38,7 +38,7 @@ def create_app():
 
     # Determine async mode: eventlet for production (gunicorn), threading for local dev
     import os
-    async_mode = 'eventlet' if os.environ.get('RENDER') else 'threading'
+    async_mode = 'eventlet' if os.environ.get('RENDER') or os.environ.get('SPACE_ID') else 'threading'
     
     socketio.init_app(
         app,
