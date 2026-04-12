@@ -1,9 +1,3 @@
-import { io } from "socket.io-client";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "https://shxsh07-ai-cheating-backend.hf.space";
-
-const socket = io(BACKEND_URL, {
-  transports: ["websocket"],
-});
-
-export default socket;
+// DEPRECATED: Use ./socket/candidateSocket.js instead
+// This file exists for backward compatibility only
+export { default } from "./socket/candidateSocket";
