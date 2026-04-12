@@ -32,6 +32,7 @@ export default function Dashboard() {
 
   const [timeline, setTimeline] = useState([]);
   const [sessionLink, setSessionLink] = useState(null);
+  const [backendConnected, setBackendConnected] = useState(false);
 
   /* -------- CREATE SESSION -------- */
   const createSession = async () => {
@@ -117,6 +118,16 @@ export default function Dashboard() {
   /* -------- SOCKET LISTENERS (COMPLETE FIX) -------- */
   useEffect(() => {
     console.log("🔌 Setting up socket listeners");
+
+    // Connection status tracking
+    socket.on("connect", () => {
+      console.log("✅ Connected to backend");
+      setBackendConnected(true);
+    });
+    socket.on("disconnect", () => {
+      console.log("❌ Disconnected from backend");
+      setBackendConnected(false);
+    });
 
     socket.on("connect", () => {
       console.log("✅ Socket connected:", socket.id);
@@ -254,6 +265,10 @@ export default function Dashboard() {
             Status:{" "}
             <b style={{ color: sessionActive ? "#00ff88" : "#ff1744" }}>
               {sessionActive ? "🟢 Monitoring Active" : "🔴 Stopped"}
+            </b>
+            {" | Backend: "}
+            <b style={{ color: backendConnected ? "#00ff88" : "#ffa726" }}>
+              {backendConnected ? "🟢 Connected" : "🟡 Connecting..."}
             </b>
           </p>
         </div>
