@@ -137,10 +137,10 @@ export default function Dashboard() {
             time: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
             ai: 0, human: 0
           }].slice(-30));
-        } else if (status === "speech_detected_no_transcript") {
-          // Speech detected, energy-based score available
+        } else if (status === "speech_detected" || status === "speech_detected_no_transcript") {
+          // Speech detected, energy-based score (fires immediately on every chunk)
           setAudioScore(data.ai_percent);
-          console.log(`🎤 ENERGY SCORE - AI: ${data.ai_percent}%`);
+          console.log(`🎤 SPEECH DETECTED - Energy AI Score: ${data.ai_percent}%`);
           setAudioHistory(prev => [...prev, {
             time: new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
             ai: data.ai_percent, human: data.human_percent || (100 - data.ai_percent)
@@ -178,8 +178,8 @@ export default function Dashboard() {
           console.log(`🎥 Video: ${data.video_score}`);
         }
 
-        // ONLY update audio from risk_update if it's > 0
-        if (data.audio_score !== undefined && data.audio_score > 0) {
+        // Always update audio score (including 0 for silence reset)
+        if (data.audio_score !== undefined) {
           setAudioScore(data.audio_score);
           console.log(`🎤 Audio: ${data.audio_score}`);
         }

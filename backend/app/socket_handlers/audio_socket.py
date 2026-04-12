@@ -40,9 +40,17 @@ SESSION_AUDIO_STATE = defaultdict(lambda: {
 })
 
 SAMPLE_RATE = 16000
-EMIT_INTERVAL = 1.0
-SILENCE_THRESHOLD = 0.001   # Very low: WebM/Opus decoded audio can be very quiet
-SPEECH_BUFFER_SIZE = 2      # 2 × 2s chunks = 4s of audio before analysis (faster response)
+EMIT_INTERVAL = 0.5
+# ============================================================
+# SILENCE THRESHOLD: This is the critical value.
+# WebM/Opus digital silence has RMS ~0.0001–0.002 (ambient noise floor).
+# Microphone ambient noise measured at ~0.011–0.013 RMS.
+# Real human speech typically has RMS ~0.03–0.15.
+# We set threshold at 0.015 to filter ambient noise while catching all speech.
+# ============================================================
+SILENCE_THRESHOLD = 0.015
+SPEECH_BUFFER_SIZE = 1      # 1 × 2s chunk = 2s of audio before analysis
+SILENCE_RESET_COUNT = 3     # After 3 silence chunks, force audio score to 0
 
 
 # ================================================
@@ -136,16 +144,23 @@ def _decode_raw_pcm(audio_bytes: bytes) -> np.ndarray:
         return None
 
 
-def decode_audio(audio_bytes: bytes) -> np.ndarray:
+def decode_audio(audio_bytes: bytes, is_webm: bool = False) -> np.ndarray:
     """
-    Main decoder: tries WebM first, falls back to raw PCM.
-    Returns float32 mono array normalised to [-1, 1], or None.
+    Main decoder: tries WebM first, falls back to raw PCM ONLY if the data
+    is not known to be WebM. Interpreting WebM container bytes as raw PCM
+    produces garbage data with very high RMS, causing false detections.
     """
     pcm = _decode_webm_to_pcm(audio_bytes)
     if pcm is not None and len(pcm) > 500:
         return pcm
-    # Fallback
-    return _decode_raw_pcm(audio_bytes)
+
+    # Only fall back to raw PCM if we DON'T know this is WebM data
+    # (WebM container bytes interpreted as int16 PCM = garbage)
+    if not is_webm:
+        return _decode_raw_pcm(audio_bytes)
+
+    logger.warning("🎤 [AUDIO] WebM decode failed and raw PCM fallback disabled for WebM data")
+    return None
 
 
 # ================================================
@@ -160,22 +175,27 @@ def handle_audio_chunk(data):
         audio_b64 = data.get("audio")
 
         if not audio_b64:
+            logger.warning("⚠️ [AUDIO] Received audio_chunk event but no audio data!")
             return
 
         state = SESSION_AUDIO_STATE[session_id]
         state["chunk_count"] += 1
 
-        logger.info(f"🎤 [AUDIO] Received chunk #{state['chunk_count']} for {session_id} | b64 len={len(audio_b64) if audio_b64 else 0}")
+        logger.info(f"🎤 [AUDIO] Received chunk #{state['chunk_count']} for {session_id} | b64 len={len(audio_b64)}")
 
         # ==================
         # DECODE AUDIO
         # ==================
+        is_webm = False
         try:
             if isinstance(audio_b64, str):
                 if audio_b64.startswith("data:"):
+                    # Check if this is WebM data
+                    header = audio_b64.split(",", 1)[0].lower()
+                    is_webm = "webm" in header or "opus" in header
                     audio_b64 = audio_b64.split(",", 1)[1]
                 audio_bytes = base64.b64decode(audio_b64)
-                logger.info(f"🎤 [AUDIO] Decoded {len(audio_bytes)} bytes from base64")
+                logger.info(f"🎤 [AUDIO] Decoded {len(audio_bytes)} bytes from base64 (webm={is_webm})")
         except Exception as e:
             logger.error(f"Base64 decode error: {e}")
             return
@@ -183,10 +203,10 @@ def handle_audio_chunk(data):
         # ==========================================
         # CONVERT TO FLOAT32 PCM (handle WebM/Opus)
         # ==========================================
-        audio_float = decode_audio(audio_bytes)
+        audio_float = decode_audio(audio_bytes, is_webm=is_webm)
 
-        if audio_float is None or audio_float.size < 1000:
-            logger.info(f"🎤 [AUDIO] Decode result: {'None' if audio_float is None else f'{audio_float.size} samples (too short)'}")
+        if audio_float is None or audio_float.size < 100:
+            logger.warning(f"🎤 [AUDIO] Decode FAILED or too short: {'None' if audio_float is None else f'{audio_float.size} samples'}")
             return
 
         rms = float(np.sqrt(np.mean(audio_float ** 2)))
@@ -200,6 +220,10 @@ def handle_audio_chunk(data):
             state["silence_count"] += 1
             state["is_currently_speaking"] = False
 
+            # After enough silence, reset audio score to 0
+            if state["silence_count"] >= SILENCE_RESET_COUNT:
+                update_audio(session_id, 0)
+
             # When silent, show 0/0 (no speech to analyze)
             socketio.emit("ai_live_update", {
                 "session_id": session_id,
@@ -207,6 +231,17 @@ def handle_audio_chunk(data):
                 "ai_percent": 0,
                 "human_percent": 0,
                 "is_speaking": False
+            })
+
+            # Push audio_score=0 via risk_update so the dashboard resets
+            fusion_state = get_state(session_id)
+            video_score = fusion_state.get("video_score", 0)
+            socketio.emit("risk_update", {
+                "session_id": session_id,
+                "video_score": video_score,
+                "audio_score": 0,
+                "final_score": video_score,
+                "violation_level": "low" if video_score < 40 else "medium"
             })
             return
 
@@ -217,15 +252,29 @@ def handle_audio_chunk(data):
         state["is_currently_speaking"] = True
         state["speech_buffer"].append(audio_float)   # store float32 array
 
-        # While buffering speech, show HUMAN-LIKELY scores
-        # (real human speaking = low AI score until proven otherwise by text analysis)
-        buffering_ai = 5  # Default: assume human while buffering
+        # =========================================================
+        # IMMEDIATE ENERGY-BASED SCORE — shows speech is happening
+        # rms 0.008–0.15 for normal speech → map to AI risk 5–20
+        # This is a BASELINE "human speech detected" indicator.
+        # Only transcription + Gemini analysis raises the score higher.
+        # =========================================================
+        energy_ai = max(5, min(20, int((rms - 0.008) * 150)))
+        fusion_state_early = get_state(session_id)
+        video_score_early = fusion_state_early.get("video_score", 0)
+
         socketio.emit("ai_live_update", {
             "session_id": session_id,
-            "status": "buffering",
-            "ai_percent": buffering_ai,
-            "human_percent": 95,
+            "status": "speech_detected",
+            "ai_percent": energy_ai,
+            "human_percent": 100 - energy_ai,
             "is_speaking": True
+        })
+        socketio.emit("risk_update", {
+            "session_id": session_id,
+            "video_score": video_score_early,
+            "audio_score": energy_ai,
+            "final_score": max(energy_ai, video_score_early),
+            "violation_level": "low"
         })
 
         buffer = state["speech_buffer"]
@@ -275,19 +324,12 @@ def handle_audio_chunk(data):
             logger.info(f"[{session_id}] No/placeholder transcript (rms={rms:.4f}) - speech detected, assuming HUMAN")
 
             # ============================================================
-            # KEY FIX: When we detect speech but can't transcribe it,
+            # When we detect speech but can't transcribe it,
             # ASSUME HUMAN. Only text analysis should raise AI score.
-            # Human speaking naturally → low AI score (5-15)
+            # Real human speaking naturally → low AI score (5-15)
             # ============================================================
-            ai_score_energy = 10  # Default: human speech assumed
-            human_score_energy = 90
-
-            # Blend with last known AI detection result if we have one
-            if state["scores"]:
-                last_ai_score = state["scores"][-1]
-                # Decay the previous AI score toward human baseline
-                ai_score_energy = int(last_ai_score * 0.3 + ai_score_energy * 0.7)
-                human_score_energy = 100 - ai_score_energy
+            ai_score_energy = max(5, min(15, int(rms * 100)))
+            human_score_energy = 100 - ai_score_energy
 
             state["scores"].append(ai_score_energy)
             update_audio(session_id, ai_score_energy)
@@ -435,8 +477,3 @@ def handle_audio_chunk(data):
 @socketio.on("disconnect")
 def handle_disconnect():
     logger.info(f"Client disconnected: {request.sid}")
-
-
-@socketio.on("ping")
-def handle_ping(data):
-    socketio.emit("pong", {"timestamp": data.get("timestamp")})

@@ -54,10 +54,9 @@ def create_app():
     # ---------------- SERVE EVIDENCE IMAGES ----------------
     @app.route("/evidence/<session>/<filename>")
     def serve_evidence(session, filename):
-        return send_from_directory(
-            f"backend/evidence/{session}",
-            filename
-        )
+        import os
+        evidence_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "evidence", session)
+        return send_from_directory(evidence_dir, filename)
 
     # ---------------- REGISTER BLUEPRINTS ----------------
     from app.routes.health_routes import health_bp

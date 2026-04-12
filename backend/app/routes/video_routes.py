@@ -20,7 +20,7 @@ video_bp = Blueprint("video", __name__, url_prefix="/video")
 # Configuration
 BLACK_FRAME_THRESHOLD = 10
 COVERED_FRAME_VARIANCE = 15
-EVIDENCE_BASE_DIR = "backend/evidence"
+EVIDENCE_BASE_DIR = "evidence"
 EVIDENCE_COOLDOWN = 2
 
 os.makedirs(EVIDENCE_BASE_DIR, exist_ok=True)
