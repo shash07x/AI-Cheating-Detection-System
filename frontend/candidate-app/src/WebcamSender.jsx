@@ -71,7 +71,7 @@ export default function WebcamSender({ sessionId }) {
       }),
     }).catch((err) => console.error("Video send error:", err));
 
-  }, 1000);
+  }, 8000); // 8s interval — HF free tier CPU processes ~1 frame/35s
 
   return () => clearInterval(interval);
 }, [sessionId]);
