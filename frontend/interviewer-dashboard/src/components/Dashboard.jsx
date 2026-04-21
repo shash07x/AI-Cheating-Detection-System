@@ -42,7 +42,7 @@ export default function Dashboard() {
 
       const data = await res.json();
       const sid = data.session_id || sessionId;
-      setSessionLink(`https://ai-cheating-detection-system-weld.vercel.app/?session=${sid}`);
+      setSessionLink(`https://ai-cheating-candidate-app.vercel.app/?session=${sid}`);
       alert("Session created! Link is ready to share.");
     } catch (error) {
       console.error("Failed to create session:", error);
