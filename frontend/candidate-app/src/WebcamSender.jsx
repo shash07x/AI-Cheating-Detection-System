@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export default function WebcamSender({ sessionId }) {
+export default function WebcamSender({ sessionId, onStatusChange }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -8,6 +8,8 @@ export default function WebcamSender({ sessionId }) {
   useEffect(() => {
     async function startCamera() {
       try {
+        if (onStatusChange) onStatusChange({ state: "requesting" });
+
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             width: 640,
@@ -22,15 +24,23 @@ export default function WebcamSender({ sessionId }) {
         video.onloadedmetadata = () => {
           video.play();
           console.log("Camera ready");
+          if (onStatusChange) onStatusChange({ state: "active" });
         };
 
       } catch (err) {
         console.error("Camera error:", err);
+        if (onStatusChange) {
+          if (err.name === "NotAllowedError") {
+            onStatusChange({ state: "denied" });
+          } else {
+            onStatusChange({ state: "error" });
+          }
+        }
       }
     }
 
     startCamera();
-  }, []);
+  }, [onStatusChange]);
 
   // SEND FRAMES TO BACKEND
   useEffect(() => {
@@ -88,7 +98,6 @@ export default function WebcamSender({ sessionId }) {
           width: "1px",
           height: "1px",
           opacity: 0,
-
         }}
       />
 

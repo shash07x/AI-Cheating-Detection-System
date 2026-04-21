@@ -8,13 +8,19 @@ import socket from "./socket/candidateSocket";
  * Uses Web Audio API (ScriptProcessorNode) instead of MediaRecorder to
  * avoid WebM fragmentation issues where only the first chunk is decodable.
  * Sends raw base64-encoded float32 PCM at 16kHz mono.
+ *
+ * Also provides:
+ *  - onAudioLevel(level)  — normalized 0-1 RMS for the Three.js scene
+ *  - onStatusChange({state}) — "active" | "denied" | "error" | "requesting"
  */
-export default function MicrophoneSender({ sessionId }) {
+export default function MicrophoneSender({ sessionId, onAudioLevel, onStatusChange }) {
   const streamRef = useRef(null);
   const audioCtxRef = useRef(null);
   const processorRef = useRef(null);
+  const analyserRef = useRef(null);
   const bufferRef = useRef([]);
   const intervalRef = useRef(null);
+  const levelFrameRef = useRef(null);
   const [error, setError] = useState(null);
 
   // REGISTER ROLE ON MOUNT
@@ -36,6 +42,7 @@ export default function MicrophoneSender({ sessionId }) {
     const startMic = async () => {
       try {
         console.log("🎤 Requesting microphone access...");
+        if (onStatusChange) onStatusChange({ state: "requesting" });
 
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: {
@@ -48,6 +55,7 @@ export default function MicrophoneSender({ sessionId }) {
 
         console.log("✅ Microphone access granted");
         streamRef.current = stream;
+        if (onStatusChange) onStatusChange({ state: "active" });
 
         // Create audio context at 16kHz for direct PCM capture
         const audioContext = new (window.AudioContext || window.webkitAudioContext)({
@@ -57,7 +65,33 @@ export default function MicrophoneSender({ sessionId }) {
 
         const source = audioContext.createMediaStreamSource(stream);
 
-        // ScriptProcessorNode captures raw PCM float32 samples
+        // ── AnalyserNode for real-time audio level ────────────
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        analyserRef.current = analyser;
+        source.connect(analyser);
+
+        // Continuous audio-level measurement for the Three.js scene
+        const timeDomainData = new Uint8Array(analyser.frequencyBinCount);
+        const measureLevel = () => {
+          levelFrameRef.current = requestAnimationFrame(measureLevel);
+          analyser.getByteTimeDomainData(timeDomainData);
+
+          // Compute RMS
+          let sum = 0;
+          for (let i = 0; i < timeDomainData.length; i++) {
+            const v = (timeDomainData[i] - 128) / 128;
+            sum += v * v;
+          }
+          const rms = Math.sqrt(sum / timeDomainData.length);
+
+          // Normalize to 0–1 range (typical speech RMS is 0.05–0.3)
+          const normalizedLevel = Math.min(rms / 0.35, 1.0);
+          if (onAudioLevel) onAudioLevel(normalizedLevel);
+        };
+        measureLevel();
+
+        // ── ScriptProcessorNode for PCM capture ───────────────
         // Buffer size 4096 at 16kHz = ~256ms per callback
         const processor = audioContext.createScriptProcessor(4096, 1, 1);
         processorRef.current = processor;
@@ -117,8 +151,10 @@ export default function MicrophoneSender({ sessionId }) {
 
         if (err.name === "NotAllowedError") {
           setError("Microphone access denied");
+          if (onStatusChange) onStatusChange({ state: "denied" });
         } else {
           setError(`Microphone error: ${err.message}`);
+          if (onStatusChange) onStatusChange({ state: "error" });
         }
       }
     };
@@ -128,6 +164,7 @@ export default function MicrophoneSender({ sessionId }) {
     return () => {
       console.log("🧹 Cleaning up microphone");
       clearInterval(intervalRef.current);
+      cancelAnimationFrame(levelFrameRef.current);
 
       if (processorRef.current) {
         processorRef.current.disconnect();
@@ -141,7 +178,7 @@ export default function MicrophoneSender({ sessionId }) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [sessionId]);
+  }, [sessionId, onAudioLevel, onStatusChange]);
 
   return (
     <div style={{ display: "none" }}>

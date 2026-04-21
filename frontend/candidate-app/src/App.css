@@ -1,38 +1,253 @@
-.App {
-  text-align: center;
-}
+/* ═══════════════════════════════════════════════════════════
+   Candidate App — Dark Futuristic UI matching reference design
+   ═══════════════════════════════════════════════════════════ */
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+/* ── Page Layout ─────────────────────────────────────────── */
+.candidate-page {
+  position: relative;
+  width: 100vw;
   min-height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(160deg, #0b0e1a 0%, #0f1424 30%, #111833 60%, #0d1228 100%);
+  color: #e0e6f0;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* ── Three.js Canvas ─────────────────────────────────────── */
+.scene-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.scene-canvas canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ── Overlay gradient above the scene ────────────────────── */
+.scene-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, rgba(11, 14, 26, 0.85) 0%, rgba(11, 14, 26, 0.4) 30%, transparent 55%),
+    linear-gradient(to right, rgba(11, 14, 26, 0.6) 0%, transparent 40%);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Bottom-Left Content Block
+   ═══════════════════════════════════════════════════════════ */
+.content-bottom {
+  position: absolute;
+  bottom: 48px;
+  left: 48px;
+  z-index: 2;
+  max-width: 520px;
+}
+
+/* ── Session Badge ───────────────────────────────────────── */
+.session-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #5ee7d5;
+  border: 1px solid rgba(94, 231, 213, 0.35);
+  border-radius: 4px;
+  padding: 5px 14px;
+  margin-bottom: 20px;
+  background: rgba(94, 231, 213, 0.06);
+}
+
+/* ── Title ───────────────────────────────────────────────── */
+.page-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 16px 0;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+/* ── Subtitle ────────────────────────────────────────────── */
+.page-subtitle {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: rgba(190, 200, 220, 0.65);
+  margin: 0 0 28px 0;
+  max-width: 400px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Status Cards (bottom row)
+   ═══════════════════════════════════════════════════════════ */
+.status-cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.status-card {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 4px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  min-width: 130px;
+  transition: all 0.4s ease;
 }
 
-.App-link {
-  color: #61dafb;
+.status-card-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.status-card-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* ── Mic card — teal ─────────────────────────────────────── */
+.status-card.mic.active {
+  background: rgba(20, 80, 80, 0.7);
+  border: 1px solid rgba(94, 231, 213, 0.2);
+}
+
+.status-card.mic.requesting {
+  background: rgba(40, 50, 70, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-card.mic.denied,
+.status-card.mic.error {
+  background: rgba(120, 30, 30, 0.5);
+  border: 1px solid rgba(255, 100, 100, 0.2);
+}
+
+/* ── Camera card — blue ──────────────────────────────────── */
+.status-card.cam.active {
+  background: rgba(25, 55, 120, 0.7);
+  border: 1px solid rgba(80, 140, 255, 0.25);
+}
+
+.status-card.cam.requesting {
+  background: rgba(40, 50, 70, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-card.cam.denied,
+.status-card.cam.error {
+  background: rgba(120, 30, 30, 0.5);
+  border: 1px solid rgba(255, 100, 100, 0.2);
+}
+
+/* ── Voice card — dark with subtle border ────────────────── */
+.status-card.voice {
+  background: rgba(30, 35, 55, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-card.voice.speaking {
+  background: rgba(30, 60, 60, 0.6);
+  border: 1px solid rgba(94, 231, 213, 0.15);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Audio Level Widget (top-right)
+   ═══════════════════════════════════════════════════════════ */
+.audio-widget {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  z-index: 2;
+  width: 200px;
+  padding: 18px;
+  border-radius: 12px;
+  background: rgba(18, 22, 38, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.audio-widget-bar-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.audio-widget-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  transition: width 0.08s ease-out;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+}
+
+.audio-widget-percent {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.audio-widget-desc {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: rgba(180, 190, 215, 0.55);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .content-bottom {
+    left: 24px;
+    bottom: 32px;
+    max-width: calc(100% - 48px);
   }
-  to {
-    transform: rotate(360deg);
+
+  .page-title {
+    font-size: 2rem;
+  }
+
+  .audio-widget {
+    top: 16px;
+    right: 16px;
+    width: 170px;
+    padding: 14px;
+  }
+
+  .status-cards {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.6rem;
+  }
+
+  .content-bottom {
+    left: 16px;
+    bottom: 20px;
+  }
+
+  .audio-widget {
+    width: 150px;
+    padding: 12px;
   }
 }
