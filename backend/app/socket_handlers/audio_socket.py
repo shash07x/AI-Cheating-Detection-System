@@ -144,23 +144,44 @@ def _decode_raw_pcm(audio_bytes: bytes) -> np.ndarray:
         return None
 
 
+def _looks_like_webm(audio_bytes: bytes) -> bool:
+    """Check if bytes start with EBML header (WebM/Matroska signature)."""
+    return len(audio_bytes) > 4 and audio_bytes[:4] == b'\x1a\x45\xdf\xa3'
+
+
 def decode_audio(audio_bytes: bytes, is_webm: bool = False) -> np.ndarray:
     """
-    Main decoder: tries WebM first, falls back to raw PCM ONLY if the data
-    is not known to be WebM. Interpreting WebM container bytes as raw PCM
-    produces garbage data with very high RMS, causing false detections.
+    Main decoder with robust format detection.
+
+    When the data is known to NOT be WebM (raw PCM int16 from MicrophoneSender),
+    we decode as raw PCM FIRST. This avoids PyAV on HF Spaces misinterpreting
+    raw int16 bytes as an audio container, which produces garbage data with
+    near-zero RMS and causes false silence detection.
     """
-    pcm = _decode_webm_to_pcm(audio_bytes)
-    if pcm is not None and len(pcm) > 500:
-        return pcm
+    # Auto-detect: check EBML magic bytes regardless of the is_webm flag
+    has_webm_signature = _looks_like_webm(audio_bytes)
 
-    # Only fall back to raw PCM if we DON'T know this is WebM data
-    # (WebM container bytes interpreted as int16 PCM = garbage)
-    if not is_webm:
-        return _decode_raw_pcm(audio_bytes)
-
-    logger.warning("🎤 [AUDIO] WebM decode failed and raw PCM fallback disabled for WebM data")
-    return None
+    if has_webm_signature or is_webm:
+        # Data IS a WebM/Opus container → try WebM decode first
+        logger.debug("🎤 [AUDIO] Detected WebM/container data, using av decoder")
+        pcm = _decode_webm_to_pcm(audio_bytes)
+        if pcm is not None and len(pcm) > 500:
+            return pcm
+        # WebM decode failed → DON'T fall back to raw PCM (garbage)
+        logger.warning("🎤 [AUDIO] WebM decode failed and raw PCM fallback disabled for WebM data")
+        return None
+    else:
+        # Data is raw PCM int16 → decode directly, skip PyAV entirely
+        logger.debug("🎤 [AUDIO] Raw PCM data detected, using direct int16 decoder")
+        pcm = _decode_raw_pcm(audio_bytes)
+        if pcm is not None and len(pcm) > 500:
+            return pcm
+        # Raw PCM failed → try WebM as last resort
+        logger.info("🎤 [AUDIO] Raw PCM decode failed, trying WebM as fallback")
+        pcm = _decode_webm_to_pcm(audio_bytes)
+        if pcm is not None and len(pcm) > 500:
+            return pcm
+        return None
 
 
 # ================================================
