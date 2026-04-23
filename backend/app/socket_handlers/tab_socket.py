@@ -1,12 +1,12 @@
 from app.extensions import socketio
-from app.services.fusion_state import update_tab, get_state
+from app.services.fusion_state import update_tab_switch, get_state
 from app.services.fraud_aggregator import aggregate_scores, explain
 
 @socketio.on("tab_switch")
 def handle_tab(data):
     session_id = data.get("session_id", "demo_session_01")
 
-    update_tab(session_id)
+    update_tab_switch(session_id)
     state = get_state(session_id)
 
     agg = aggregate_scores(
