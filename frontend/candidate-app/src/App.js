@@ -1,25 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import LoginPage from "./LoginPage";
+import CandidateApp from "./CandidateApp";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default function App() {
+  const [admitted, setAdmitted] = useState(false);
+  const [candidateId, setCandidateId] = useState("");
+  const [sessionId, setSessionId] = useState("session_01");
+
+  const handleAdmitted = (cId, sId) => {
+    setCandidateId(cId);
+    setSessionId(sId);
+    setAdmitted(true);
+  };
+
+  if (!admitted) {
+    return <LoginPage onAdmitted={handleAdmitted} />;
+  }
+
+  return <CandidateApp candidateId={candidateId} sessionId={sessionId} />;
 }
-
-export default App;
