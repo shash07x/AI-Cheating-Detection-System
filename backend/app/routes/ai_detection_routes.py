@@ -159,13 +159,15 @@ def finalize_session():
         # ---------------- BACKEND STATE ----------------
         state = get_state(session_id) or {}
 
-        video_score = state.get("video_score", 0)
-        audio_score = state.get("audio_score", 0)
+        # Use PEAK scores (not last-frame snapshot) for the final report
+        video_score = max(state.get("video_score", 0), state.get("max_video_score", 0))
+        audio_score = max(state.get("audio_score", 0), state.get("max_audio_score", 0))
         tab_switches = state.get("tab_switches", 0)
+        violation_count = state.get("violation_count", 0)
 
         logger.info(
             f"Session {session_id} scores: "
-            f"video={video_score}, audio={audio_score}, tabs={tab_switches}"
+            f"video={video_score}, audio={audio_score}, tabs={tab_switches}, violations={violation_count}"
         )
 
         # ---------------- ANSWER TIMELINE ----------------
@@ -180,6 +182,7 @@ def finalize_session():
         )
 
         explanation = explain(video_score, audio_score)
+
 
         # ---------------- FINAL PAYLOAD ----------------
     

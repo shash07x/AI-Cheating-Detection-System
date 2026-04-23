@@ -29,29 +29,50 @@ def generate_final_report(session_id: str, fusion_state: dict):
     camera = events.get("camera", 0)
     looking = events.get("looking_away", 0)
 
-    audio_ai_score = fusion_state.get("audio_score", 0)
-    video_score = fusion_state.get("video_score", 0)
+    # Use peak scores from the session (not last-frame values)
+    audio_ai_score = max(
+        fusion_state.get("audio_score", 0),
+        fusion_state.get("max_audio_score", 0)
+    )
+    video_score = max(
+        fusion_state.get("video_score", 0),
+        fusion_state.get("max_video_score", 0)
+    )
+    violation_count = fusion_state.get("violation_count", 0)
 
-    # Calculate final risk (Weighted)
+    # Calculate final risk (Weighted — events + scores)
     risk = (
         phone * 50 +
         multi * 40 +
         camera * 30 +
         looking * 10 +
-        audio_ai_score
+        audio_ai_score +
+        int(video_score * 0.3)
     )
 
     risk = min(risk, 100)
 
-    is_fail = risk > 60 or audio_ai_score > 70
-    verdict = "FAIL (Suspicious Activity)" if is_fail else "PASS"
+    # Decision logic
+    is_fail = risk > 60 or audio_ai_score > 70 or video_score > 80
+    is_review = not is_fail and (risk > 30 or video_score > 50 or violation_count > 5)
+    
+    if is_fail:
+        verdict = "FAIL (Suspicious Activity)"
+    elif is_review:
+        verdict = "REVIEW"
+    else:
+        verdict = "PASS"
 
-    # Specific reasons for fail
+    # Specific reasons
     status_msg = f"Final Risk Score: {risk}%"
     if audio_ai_score > 70:
         status_msg = "FAIL (AI Plagiarism Detected)"
+    elif video_score > 80:
+        status_msg = "FAIL (Critical Video Violations)"
     elif risk > 60:
         status_msg = "FAIL (Multiple Violations)"
+    elif is_review:
+        status_msg = "REVIEW (Moderate Violations Detected)"
 
     return {
         "session_id": session_id,
@@ -61,8 +82,9 @@ def generate_final_report(session_id: str, fusion_state: dict):
         "looking_away_events": looking,
         "ai_speech_score": audio_ai_score,
         "video_score": video_score,
+        "violation_count": violation_count,
         "evidence_files": get_evidence_files(session_id),
         "final_risk_score": int(risk),
         "verdict": verdict,
         "status_message": status_msg
-    }
+    }
