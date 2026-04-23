@@ -119,10 +119,29 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 warnings.filterwarnings("ignore")
 
 try:
+    import numpy as np
+    import soundfile as sf
     import whisper
+
+    # Load audio ourselves via soundfile (avoids ffmpeg dependency)
+    audio_np, sr = sf.read(sys.argv[1], dtype="float32")
+    # Mono
+    if audio_np.ndim > 1:
+        audio_np = audio_np.mean(axis=1)
+    # Resample to 16kHz if needed
+    if sr != 16000:
+        length = int(len(audio_np) * 16000 / sr)
+        indices = np.linspace(0, len(audio_np) - 1, length).astype(int)
+        audio_np = audio_np[indices]
+    # Pad/trim to whisper expected length
+    audio_np = whisper.pad_or_trim(audio_np)
+
     model = whisper.load_model("tiny", device="cpu")
-    result = model.transcribe(sys.argv[1], fp16=False, language="en", task="transcribe")
-    text = result.get("text", "").strip()
+    # Compute mel spectrogram directly from numpy array (bypasses ffmpeg)
+    mel = whisper.log_mel_spectrogram(audio_np).to(model.device)
+    options = whisper.DecodingOptions(language="en", fp16=False)
+    result = whisper.decode(model, mel, options)
+    text = result.text.strip() if hasattr(result, "text") else ""
     print(json.dumps({"text": text, "model": "whisper-tiny"}))
 except Exception as e:
     print(json.dumps({"text": "", "error": str(e), "model": "whisper-error"}))

@@ -88,6 +88,9 @@ def estimate_head_pose(frame: Optional[np.ndarray] = None) -> Dict:
 
         model = initialize_model()
 
+        if model is None:
+            raise RuntimeError("YOLO model unavailable")
+
         h, w, _ = frame.shape
 
         logger.info(f"📸 YOLO processing frame {_frame_count}")
