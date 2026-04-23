@@ -1,0 +1,311 @@
+/* ═══════════════════════════════════════════════════════════
+   Candidate Login Page — Glassmorphism UI
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Page Background ─────────────────────────────────────── */
+.login-page {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #0b0e1a 0%, #0f1424 30%, #111833 60%, #0d1228 100%);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* ── Floating Particles ──────────────────────────────────── */
+.login-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(94, 231, 213, 0.4);
+  animation: floatParticle 10s ease-in-out infinite;
+}
+
+.particle:nth-child(even) {
+  background: rgba(139, 92, 246, 0.35);
+  width: 3px;
+  height: 3px;
+}
+
+.particle:nth-child(3n) {
+  background: rgba(236, 72, 153, 0.3);
+  width: 5px;
+  height: 5px;
+}
+
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) scale(1);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-30px) translateX(15px) scale(1.2);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-50px) translateX(-10px) scale(0.8);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translateY(-20px) translateX(20px) scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+/* ── Container ───────────────────────────────────────────── */
+.login-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Glass Card ──────────────────────────────────────────── */
+.login-card {
+  width: 420px;
+  max-width: 90vw;
+  padding: 48px 40px;
+  border-radius: 20px;
+  background: rgba(18, 22, 40, 0.65);
+  border: 1px solid rgba(94, 231, 213, 0.12);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 60px rgba(94, 231, 213, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── Icon ────────────────────────────────────────────────── */
+.login-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(94, 231, 213, 0.12), rgba(139, 92, 246, 0.12));
+  border: 1px solid rgba(94, 231, 213, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5ee7d5;
+  margin-bottom: 28px;
+}
+
+/* ── Title ───────────────────────────────────────────────── */
+.login-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+/* ── Subtitle ────────────────────────────────────────────── */
+.login-subtitle {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: rgba(190, 200, 220, 0.6);
+  margin: 0 0 32px 0;
+  text-align: center;
+  max-width: 320px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Form Elements
+   ═══════════════════════════════════════════════════════════ */
+.login-form {
+  width: 100%;
+}
+
+.input-group {
+  margin-bottom: 24px;
+}
+
+.input-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(94, 231, 213, 0.7);
+  margin-bottom: 10px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(94, 231, 213, 0.15);
+  background: rgba(11, 14, 26, 0.6);
+  color: #ffffff;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.login-input::placeholder {
+  color: rgba(160, 170, 190, 0.35);
+}
+
+.login-input:focus {
+  border-color: rgba(94, 231, 213, 0.45);
+  box-shadow: 0 0 0 3px rgba(94, 231, 213, 0.08), 0 0 20px rgba(94, 231, 213, 0.06);
+}
+
+/* ── Submit Button ───────────────────────────────────────── */
+.login-btn {
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #5ee7d5, #3b82f6);
+  color: #0b0e1a;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(94, 231, 213, 0.25);
+}
+
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(94, 231, 213, 0.35);
+}
+
+.login-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Status States (Waiting / Rejected)
+   ═══════════════════════════════════════════════════════════ */
+.login-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding: 20px 0;
+}
+
+/* ── Spinner ─────────────────────────────────────────────── */
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(94, 231, 213, 0.15);
+  border-top: 3px solid #5ee7d5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.status-text {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+.status-sub {
+  font-size: 0.82rem;
+  color: rgba(190, 200, 220, 0.55);
+  margin: 0;
+}
+
+/* ── Rejected ────────────────────────────────────────────── */
+.rejected-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(244, 67, 54, 0.12);
+  border: 2px solid rgba(244, 67, 54, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #f44336;
+  margin-bottom: 18px;
+}
+
+.rejected-text {
+  color: rgba(244, 67, 54, 0.9) !important;
+}
+
+.retry-btn {
+  margin-top: 16px;
+  padding: 12px 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(94, 231, 213, 0.2);
+  background: rgba(94, 231, 213, 0.08);
+  color: #5ee7d5;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  background: rgba(94, 231, 213, 0.15);
+  border-color: rgba(94, 231, 213, 0.35);
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.login-footer {
+  margin-top: 28px;
+  font-size: 0.72rem;
+  color: rgba(160, 170, 190, 0.35);
+  letter-spacing: 0.04em;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 36px 24px;
+  }
+
+  .login-title {
+    font-size: 1.5rem;
+  }
+
+  .login-icon {
+    width: 64px;
+    height: 64px;
+  }
+}

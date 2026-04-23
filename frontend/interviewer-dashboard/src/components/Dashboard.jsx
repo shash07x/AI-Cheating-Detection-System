@@ -23,6 +23,7 @@ export default function Dashboard() {
   const [alerts, setAlerts] = useState([]);
   const [finalReport, setFinalReport] = useState(null);
   const [popupAlert, setPopupAlert] = useState(null);
+  const [pendingCandidate, setPendingCandidate] = useState(null);
 
   const [audioScore, setAudioScore] = useState(0);
   const [audioHistory, setAudioHistory] = useState([]);
@@ -116,6 +117,17 @@ export default function Dashboard() {
     return () => window.removeEventListener("blur", onBlur);
   }, [sessionActive, sessionId]);
 
+  /* -------- CANDIDATE ADMISSION HANDLER -------- */
+  const handleAdmit = (candidateId, admitted) => {
+    socket.emit("candidate_admission_response", {
+      candidate_id: candidateId,
+      session_id: sessionId,
+      admitted,
+      reason: admitted ? "" : "Entry declined by interviewer.",
+    });
+    setPendingCandidate(null);
+  };
+
   /* -------- SOCKET LISTENERS (COMPLETE FIX) -------- */
   useEffect(() => {
     console.log("🔌 Setting up socket listeners");
@@ -134,6 +146,12 @@ export default function Dashboard() {
       console.log("✅ Socket connected:", socket.id);
     });
 
+    // -------- CANDIDATE JOIN REQUEST --------
+    socket.on("candidate_join_request", (data) => {
+      console.log("📩 CANDIDATE JOIN REQUEST:", data);
+      setPendingCandidate(data);
+    });
+
     // AI Live Update - WITH PROPER STATUS HANDLING
     socket.on("ai_live_update", (data) => {
       console.log("📊 AI LIVE UPDATE:", data);
@@ -142,7 +160,6 @@ export default function Dashboard() {
         const status = data.status || "";
 
         if (data.is_speaking === false && status === "waiting_for_speech") {
-          // Truly silent
           setAudioScore(0);
           console.log("🔇 SILENT - Gauges reset to 0");
           setAudioHistory(prev => [...prev, {
@@ -150,7 +167,6 @@ export default function Dashboard() {
             ai: 0, human: 0
           }].slice(-30));
         } else if (status === "speech_detected" || status === "speech_detected_no_transcript") {
-          // Speech detected, energy-based score (fires immediately on every chunk)
           setAudioScore(data.ai_percent);
           console.log(`🎤 SPEECH DETECTED - Energy AI Score: ${data.ai_percent}%`);
           setAudioHistory(prev => [...prev, {
@@ -158,7 +174,6 @@ export default function Dashboard() {
             ai: data.ai_percent, human: data.human_percent || (100 - data.ai_percent)
           }].slice(-30));
         } else if (status === "buffering") {
-          // Speech detected, buffering — keep last score
           console.log("🎤 BUFFERING - Speech detected, awaiting analysis...");
           setAudioHistory(prev => {
             const lastScore = prev.length > 0 ? prev[prev.length - 1].ai : 0;
@@ -168,7 +183,6 @@ export default function Dashboard() {
             }].slice(-30);
           });
         } else if (data.is_speaking === true) {
-          // Active detection result
           setAudioScore(data.ai_percent);
           console.log(`🎙️ SPEAKING - AI: ${data.ai_percent}%`);
           setAudioHistory(prev => [...prev, {
@@ -190,7 +204,6 @@ export default function Dashboard() {
           console.log(`🎥 Video: ${data.video_score}`);
         }
 
-        // Always update audio score (including 0 for silence reset)
         if (data.audio_score !== undefined) {
           setAudioScore(data.audio_score);
           console.log(`🎤 Audio: ${data.audio_score}`);
@@ -250,6 +263,7 @@ export default function Dashboard() {
       socket.off("fraud_alert");
       socket.off("final_report");
       socket.off("connect_error");
+      socket.off("candidate_join_request");
     };
   }, [sessionId]);
 
@@ -498,6 +512,39 @@ export default function Dashboard() {
       </div>
 
       <AlertPopup alert={popupAlert} onClose={() => setPopupAlert(null)} />
+
+      {/* -------- CANDIDATE ADMISSION POPUP -------- */}
+      {pendingCandidate && (
+        <div style={styles.admissionOverlay}>
+          <div style={styles.admissionModal}>
+            <div style={styles.admissionIcon}>👤</div>
+            <h2 style={{ color: '#fff', margin: '0 0 8px 0', fontSize: 20 }}>Candidate Join Request</h2>
+            <p style={{ color: '#b0b0b0', margin: '0 0 24px 0', fontSize: 14 }}>
+              A candidate wants to join the interview session.
+            </p>
+            <div style={styles.admissionIdBox}>
+              <span style={{ color: '#b0b0b0', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Candidate ID</span>
+              <span style={{ color: '#ff00ff', fontSize: 18, fontWeight: 'bold', fontFamily: 'monospace' }}>
+                {pendingCandidate.candidate_id}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 12, marginTop: 24, width: '100%' }}>
+              <button
+                onClick={() => handleAdmit(pendingCandidate.candidate_id, false)}
+                style={styles.admissionDecline}
+              >
+                ✕ Decline
+              </button>
+              <button
+                onClick={() => handleAdmit(pendingCandidate.candidate_id, true)}
+                style={styles.admissionAccept}
+              >
+                ✓ Accept
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -682,5 +729,73 @@ const styles = {
     width: "100%",
     maxWidth: 300,
     borderRadius: 4,
+  },
+  admissionOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0, 0, 0, 0.7)",
+    backdropFilter: "blur(6px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+  },
+  admissionModal: {
+    background: "rgba(20, 20, 35, 0.98)",
+    borderRadius: 16,
+    padding: "36px 32px",
+    width: 400,
+    maxWidth: "90vw",
+    border: "1px solid rgba(255, 0, 255, 0.3)",
+    boxShadow: "0 0 60px rgba(255, 0, 255, 0.15), 0 8px 32px rgba(0,0,0,0.5)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+  },
+  admissionIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    background: "rgba(138, 43, 226, 0.15)",
+    border: "1px solid rgba(138, 43, 226, 0.3)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 28,
+    marginBottom: 16,
+  },
+  admissionIdBox: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+    padding: "16px 24px",
+    borderRadius: 10,
+    background: "rgba(0, 0, 0, 0.4)",
+    border: "1px solid rgba(138, 43, 226, 0.2)",
+    width: "100%",
+  },
+  admissionAccept: {
+    flex: 1,
+    padding: "12px 0",
+    borderRadius: 10,
+    border: "none",
+    background: "linear-gradient(135deg, #00ff88, #00d4ff)",
+    color: "#000",
+    fontWeight: "bold",
+    fontSize: 14,
+    cursor: "pointer",
+    boxShadow: "0 4px 15px rgba(0, 255, 136, 0.3)",
+  },
+  admissionDecline: {
+    flex: 1,
+    padding: "12px 0",
+    borderRadius: 10,
+    border: "1px solid rgba(244, 67, 54, 0.4)",
+    background: "rgba(244, 67, 54, 0.1)",
+    color: "#f44336",
+    fontWeight: "bold",
+    fontSize: 14,
+    cursor: "pointer",
   },
 };

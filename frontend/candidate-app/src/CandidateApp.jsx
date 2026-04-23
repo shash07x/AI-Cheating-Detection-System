@@ -5,11 +5,10 @@ import TabTracker from "./TabTracker";
 import SpeakingScene from "./SpeakingScene";
 import "./App.css";
 
-export default function CandidateApp() {
+export default function CandidateApp({ candidateId = "", sessionId = "session_01" }) {
   const [audioLevel, setAudioLevel] = useState(0);
   const [micStatus, setMicStatus] = useState({ state: "requesting" });
   const [cameraStatus, setCameraStatus] = useState({ state: "requesting" });
-  const sessionId = "session_01";
 
   const isSpeaking = audioLevel > 0.05;
   const levelPercent = Math.round(Math.min(audioLevel * 100, 100));
