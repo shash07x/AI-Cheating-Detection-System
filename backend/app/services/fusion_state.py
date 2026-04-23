@@ -11,6 +11,9 @@ STATE = defaultdict(lambda: {
     "audio_score": 0,
     "final_score": 0,
     "max_score": 0,
+    "max_video_score": 0,
+    "max_audio_score": 0,
+    "violation_count": 0,
 
     "tab_switches": 0,
     "timeline": deque(maxlen=300),
@@ -18,6 +21,7 @@ STATE = defaultdict(lambda: {
     "voice_embedding": None,
     "voice_drift_score": 0,
 })
+
 
 # -----------------------------
 # VOICE DRIFT DETECTION
@@ -51,7 +55,11 @@ def update_voice_embedding(session_id, new_embedding):
 # -----------------------------
 
 def update_video(session_id, score):
-    STATE[session_id]["video_score"] = score
+    state = STATE[session_id]
+    state["video_score"] = score
+    state["max_video_score"] = max(state["max_video_score"], score)
+    if score >= 40:
+        state["violation_count"] = state.get("violation_count", 0) + 1
 
 
 def update_audio(session_id, score):
@@ -60,7 +68,9 @@ def update_audio(session_id, score):
     # integrate voice drift
     drift_penalty = int(state["voice_drift_score"] * 50)
 
-    state["audio_score"] = min(100, score + drift_penalty)
+    final_audio = min(100, score + drift_penalty)
+    state["audio_score"] = final_audio
+    state["max_audio_score"] = max(state["max_audio_score"], final_audio)
 
 
 def update_tab_switch(session_id):

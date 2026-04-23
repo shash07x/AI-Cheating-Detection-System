@@ -11,6 +11,7 @@ from app.services.head_pose_estimation import estimate_head_pose, get_statistics
 from app.services.head_pose_fallback import estimate_head_pose_fallback
 from app.services.stable_vision_engine import analyze_frame, HeadPose, reset_session as reset_vision_session
 from app.services.fusion_state import update_video, get_state
+from app.services.final_report_engine import record_event
 from app.extensions import socketio
 
 logger = logging.getLogger(__name__)
@@ -139,6 +140,7 @@ def analyze_video():
             reasons.append("🚨 Camera blocked/covered")
             evidence_path = save_evidence(session_id, frame, "blocked")
             detection_type = "camera_blocked"
+            record_event(session_id, "camera")
         else:
             # ===== Step 2: Run head pose detection =====
             try:
@@ -173,6 +175,7 @@ def analyze_video():
                     reasons.append("📱 PHONE DETECTED IN FRAME")
                     evidence_path = save_evidence(session_id, frame, "phone_detected")
                     detection_type = "phone_detected"
+                    record_event(session_id, "phone")
                 
                 # Check for multiple faces
                 elif head_pose_result.get("multiple_faces"):
@@ -183,6 +186,7 @@ def analyze_video():
                     reasons.append(f"👥 MULTIPLE FACES DETECTED ({person_count})")
                     evidence_path = save_evidence(session_id, frame, "multiple_faces")
                     detection_type = f"multiple_faces_{person_count}"
+                    record_event(session_id, "multiple_person")
                 
                 # Check for face change (impersonation)
                 elif head_pose_result.get("face_changed"):
@@ -192,6 +196,7 @@ def analyze_video():
                     reasons.append("🔄 FACE CHANGED - Possible impersonation")
                     evidence_path = save_evidence(session_id, frame, "face_swap")
                     detection_type = "face_changed"
+                    record_event(session_id, "multiple_person")
                 
                 # Check for no face
                 elif head_pose_result.get("status") == "no_face":
@@ -201,6 +206,7 @@ def analyze_video():
                     reasons.append("❌ NO FACE DETECTED")
                     evidence_path = save_evidence(session_id, frame, "no_face")
                     detection_type = "no_face"
+                    record_event(session_id, "looking_away")
                 
                 else:
                     logger.debug(f"📝 Normal status detected, calling SVE analysis")
