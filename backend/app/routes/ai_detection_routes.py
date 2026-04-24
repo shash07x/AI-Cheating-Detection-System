@@ -162,7 +162,10 @@ def finalize_session():
         # Use PEAK scores (not last-frame snapshot) for the final report
         video_score = max(state.get("video_score", 0), state.get("max_video_score", 0))
         audio_score = max(state.get("audio_score", 0), state.get("max_audio_score", 0))
-        tab_switches = state.get("tab_switches", 0)
+        # Use the higher of client-reported or backend-tracked tab switches
+        backend_tabs = state.get("tab_switches", 0)
+        client_tabs = data.get("tab_switches", 0)
+        tab_switches = max(backend_tabs, client_tabs)
         violation_count = state.get("violation_count", 0)
 
         logger.info(
