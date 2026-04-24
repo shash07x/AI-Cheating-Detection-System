@@ -17,6 +17,17 @@ from app.services.fraud_aggregator import aggregate_scores, explain
 from app.services.fusion_state import get_state, reset_state
 from app.services.answer_timeline import get_timeline, reset_timeline
 from app.services.final_report_engine import generate_final_report
+
+# MongoDB persistence (optional)
+try:
+    from app.services.mongo_service import record_session_start, save_session_result, get_all_sessions, get_session, MONGO_AVAILABLE as MONGO_OK
+except ImportError:
+    MONGO_OK = False
+    def record_session_start(*a, **kw): pass
+    def save_session_result(*a, **kw): return None
+    def get_all_sessions(): return []
+    def get_session(sid): return None
+
 ai_bp = Blueprint("ai", __name__, url_prefix="/ai")
 
 # --------------------------------------------------
@@ -31,12 +42,13 @@ def start_session():
     """
     data = request.get_json(silent=True) or {}
     session_id = data.get("session_id", "session_01")
+    candidate_id = data.get("candidate_id", "")
 
     if not session_id:
         return jsonify({"error": "session_id required"}), 400
 
     try:
-        logger.info(f"✅ Starting monitoring for session: {session_id}")
+        logger.info(f"✅ Starting monitoring for session: {session_id} (candidate={candidate_id})")
 
         # Reset answer timeline
         try:
@@ -52,6 +64,9 @@ def start_session():
                 reset_state()
             except Exception as e:
                 logger.warning(f"State reset failed: {e}")
+
+        # Record session start in MongoDB
+        record_session_start(session_id, candidate_id)
 
         logger.info(f"✅ Monitoring started for session: {session_id}")
 
@@ -212,30 +227,20 @@ def finalize_session():
             "final_risk_score": auth_report["final_risk_score"],
             "verdict": auth_report["verdict"]
         }
-        # ---------------- STORE DB (OPTIONAL) ----------------
-        if DB_AVAILABLE:
-            try:
-                record = InterviewSession(
-                    session_id=session_id,
-                    video_score=video_score,
-                    audio_score=audio_score,
-                    final_score=result["final_score"],
-                    violation_level=result["violation_level"],
-                    escalation=result.get("escalation", False)
-                )
-                db.session.add(record)
-                db.session.commit()
-                logger.info(f"✅ Saved session {session_id} to database")
-
-            except Exception as db_error:
-                logger.error(f"Database save failed: {db_error}")
-                try:
-                    db.session.rollback()
-                except:
-                    pass
-                payload["db_warning"] = "Failed to save to database"
-        else:
-            logger.info("Database not available - skipping persistence")
+        # ---------------- STORE MONGODB ----------------
+        candidate_id = data.get("candidate_id", "")
+        save_session_result(
+            session_id=session_id,
+            candidate_id=candidate_id,
+            video_score=video_score,
+            audio_score=audio_score,
+            speech_auth_score=audio_score,
+            final_score=result["final_score"],
+            violation_count=violation_count,
+            tab_switches=tab_switches,
+            violation_level=result["violation_level"],
+            verdict=auth_report["verdict"],
+        )
 
         # ---------------- EMIT FINAL REPORT ----------------
         try:
@@ -287,5 +292,30 @@ def health_check():
     return jsonify({
         "status": "healthy",
         "service": "AI Detection Routes",
-        "database_available": DB_AVAILABLE
+        "database_available": DB_AVAILABLE,
+        "mongodb_available": MONGO_OK
     })
+
+
+# --------------------------------------------------
+# SESSION HISTORY (MongoDB)
+# --------------------------------------------------
+
+@ai_bp.route("/sessions", methods=["GET"])
+def list_sessions():
+    """Get all stored sessions from MongoDB."""
+    sessions = get_all_sessions()
+    return jsonify({
+        "status": "success",
+        "sessions": sessions,
+        "count": len(sessions)
+    })
+
+
+@ai_bp.route("/sessions/<session_id>", methods=["GET"])
+def get_session_by_id(session_id):
+    """Get a single session by ID."""
+    session = get_session(session_id)
+    if session:
+        return jsonify({"status": "success", "session": session})
+    return jsonify({"status": "not_found", "message": f"Session {session_id} not found"}), 404

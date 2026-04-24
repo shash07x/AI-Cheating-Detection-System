@@ -51,6 +51,13 @@ def create_app():
         engineio_logger=False
     )
 
+    # ---------------- INIT MONGODB ----------------
+    try:
+        from app.services.mongo_service import init_mongo
+        init_mongo(app)
+    except Exception as e:
+        logger.warning(f"MongoDB init skipped: {e}")
+
     # ---------------- SERVE EVIDENCE IMAGES ----------------
     @app.route("/evidence/<session>/<filename>")
     def serve_evidence(session, filename):
