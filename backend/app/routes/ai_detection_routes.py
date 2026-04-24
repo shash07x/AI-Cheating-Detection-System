@@ -204,7 +204,7 @@ def finalize_session():
 
         # ---------------- FINAL PAYLOAD ----------------
     
-        auth_report = generate_final_report(session_id, state)
+        auth_report = generate_final_report(session_id, state, tab_switches_override=tab_switches)
         payload = {
             "session_id": session_id,
             "video_score": video_score,
@@ -218,34 +218,41 @@ def finalize_session():
             "answers": answers,
             "answer_count": len(answers),
 
-            # 🔥 Added
+            # Event counts from report engine
             "phone_events": auth_report["phone_events"],
             "multiple_person_events": auth_report["multiple_person_events"],
             "camera_events": auth_report["camera_events"],
             "looking_away_events": auth_report["looking_away_events"],
             "evidence_files": auth_report["evidence_files"],
             "final_risk_score": auth_report["final_risk_score"],
-            "verdict": auth_report["verdict"]
+            "verdict": auth_report["verdict"],
+            "status_message": auth_report.get("status_message", ""),
+            "fail_reasons": auth_report.get("fail_reasons", []),
+            "review_reasons": auth_report.get("review_reasons", []),
         }
         # ---------------- STORE MONGODB ----------------
         candidate_id = data.get("candidate_id", "")
-        save_session_result(
-            session_id=session_id,
-            candidate_id=candidate_id,
-            video_score=video_score,
-            audio_score=audio_score,
-            speech_auth_score=audio_score,
-            final_score=result["final_score"],
-            violation_count=violation_count,
-            tab_switches=tab_switches,
-            violation_level=result["violation_level"],
-            verdict=auth_report["verdict"],
-        )
+        try:
+            import app.services.mongo_service as mongo_svc
+            mongo_svc.save_session_result(
+                session_id=session_id,
+                candidate_id=candidate_id,
+                video_score=video_score,
+                audio_score=audio_score,
+                speech_auth_score=audio_score,
+                final_score=result["final_score"],
+                violation_count=violation_count,
+                tab_switches=tab_switches,
+                violation_level=result["violation_level"],
+                verdict=auth_report["verdict"],
+            )
+        except Exception as mongo_err:
+            logger.error(f"MongoDB save failed: {mongo_err}", exc_info=True)
 
         # ---------------- EMIT FINAL REPORT ----------------
         try:
             socketio.emit("final_report", payload)
-            logger.info(f"✅ Emitted final_report for session {session_id}")
+            logger.info(f"Emitted final_report for session {session_id}")
         except Exception as emit_error:
             logger.error(f"Failed to emit final_report: {emit_error}")
 
@@ -260,11 +267,11 @@ def finalize_session():
 
         try:
             reset_timeline(session_id)
-            logger.info(f"✅ Cleaned up session {session_id}")
+            logger.info(f"Cleaned up session {session_id}")
         except Exception as e:
             logger.warning(f"Timeline cleanup failed: {e}")
 
-        logger.info(f"✅ Session {session_id} finalized successfully")
+        logger.info(f"Session {session_id} finalized successfully")
 
         return jsonify({
             "status": "success",
