@@ -3,6 +3,7 @@ MongoDB Service - Session Data Persistence
 
 Connects to MongoDB Atlas and stores proctoring session results.
 Gracefully degrades: if MongoDB is unavailable, the app runs without persistence.
+Uses lazy connection: each function ensures a connection exists before operating.
 """
 
 import os
@@ -20,43 +21,49 @@ _db = None
 MONGO_AVAILABLE = False
 
 
-def init_mongo(app=None):
+def _get_db():
     """
-    Initialize MongoDB connection.
-    Call during app startup. If connection fails, app continues without persistence.
+    Lazy connection getter. Ensures MongoDB is connected.
+    Returns the database object, or None if connection fails.
     """
     global _client, _db, MONGO_AVAILABLE
 
+    if _db is not None:
+        return _db
+
     try:
         from pymongo import MongoClient
-        from pymongo.errors import ConnectionFailure
 
         mongo_uri = os.environ.get("MONGO_URI", "")
 
         if not mongo_uri:
-            logger.warning("⚠️ MONGO_URI not set — running without MongoDB persistence")
-            return
+            logger.warning("MONGO_URI not set")
+            return None
 
-        # Connect with a short timeout so startup isn't blocked
         _client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
-
-        # Verify connection
         _client.admin.command("ping")
-
         _db = _client.get_database("proctoring")
         MONGO_AVAILABLE = True
 
-        logger.info("✅ MongoDB Atlas connected — database: proctoring")
-
-        # Ensure index on session_id for fast lookups
+        # Ensure index
         _db.sessions.create_index("session_id", unique=True)
-        logger.info("✅ MongoDB indexes created")
+        logger.info("MongoDB Atlas connected (lazy) - database: proctoring")
+        return _db
 
-    except ImportError:
-        logger.warning("⚠️ pymongo not installed — running without MongoDB")
     except Exception as e:
-        logger.warning(f"⚠️ MongoDB connection failed: {e} — running without persistence")
+        logger.warning(f"MongoDB connection failed: {e}")
         MONGO_AVAILABLE = False
+        return None
+
+
+def init_mongo(app=None):
+    """
+    Initialize MongoDB connection at startup.
+    Also called lazily by _get_db() if needed.
+    """
+    db = _get_db()
+    if db is not None:
+        logger.info("MongoDB initialized at startup")
 
 
 # ================================================
@@ -66,15 +73,16 @@ def init_mongo(app=None):
 def record_session_start(session_id: str, candidate_id: str = ""):
     """
     Record session start time and candidate_id.
-    Creates or updates the document with first_record_time.
     """
-    if not MONGO_AVAILABLE or _db is None:
+    db = _get_db()
+    if db is None:
+        logger.warning("record_session_start: MongoDB not available")
         return
 
     try:
         now = datetime.now(timezone.utc)
 
-        _db.sessions.update_one(
+        db.sessions.update_one(
             {"session_id": session_id},
             {
                 "$set": {
@@ -98,10 +106,10 @@ def record_session_start(session_id: str, candidate_id: str = ""):
             },
             upsert=True
         )
-        logger.info(f"✅ MongoDB: session {session_id} started (candidate={candidate_id})")
+        logger.info(f"MongoDB: session {session_id} started (candidate={candidate_id})")
 
     except Exception as e:
-        logger.error(f"❌ MongoDB record_session_start failed: {e}")
+        logger.error(f"MongoDB record_session_start failed: {e}", exc_info=True)
 
 
 # ================================================
@@ -124,19 +132,23 @@ def save_session_result(
     Save the final session result to MongoDB.
     Calculates session_duration as last_update_time - first_record_time.
     """
-    if not MONGO_AVAILABLE or _db is None:
-        logger.info("MongoDB not available — skipping session save")
+    db = _get_db()
+    if db is None:
+        logger.error("save_session_result: MongoDB not available - skipping save")
         return None
 
     try:
         now = datetime.now(timezone.utc)
 
         # Get existing document to calculate duration
-        existing = _db.sessions.find_one({"session_id": session_id})
+        existing = db.sessions.find_one({"session_id": session_id})
         first_time = existing.get("first_record_time", now) if existing else now
+        # Ensure first_time is timezone-aware (MongoDB may return naive datetimes)
+        if first_time.tzinfo is None:
+            first_time = first_time.replace(tzinfo=timezone.utc)
         duration = (now - first_time).total_seconds()
 
-        result = _db.sessions.update_one(
+        result = db.sessions.update_one(
             {"session_id": session_id},
             {
                 "$set": {
@@ -158,15 +170,14 @@ def save_session_result(
         )
 
         logger.info(
-            f"✅ MongoDB: session {session_id} saved — "
-            f"video={video_score}, audio={audio_score}, final={final_score}, "
-            f"violations={violation_count}, tabs={tab_switches}, "
-            f"duration={duration:.1f}s, verdict={verdict}"
+            f"MongoDB save: session={session_id}, "
+            f"matched={result.matched_count}, modified={result.modified_count}, "
+            f"tabs={tab_switches}, verdict={verdict}, duration={duration:.1f}s"
         )
         return result
 
     except Exception as e:
-        logger.error(f"❌ MongoDB save_session_result failed: {e}")
+        logger.error(f"MongoDB save_session_result failed: {e}", exc_info=True)
         return None
 
 
@@ -176,16 +187,16 @@ def save_session_result(
 
 def get_all_sessions():
     """Get all stored sessions (for dashboard history)."""
-    if not MONGO_AVAILABLE or _db is None:
+    db = _get_db()
+    if db is None:
         return []
 
     try:
-        sessions = list(_db.sessions.find(
+        sessions = list(db.sessions.find(
             {},
-            {"_id": 0}  # Exclude MongoDB _id field
+            {"_id": 0}
         ).sort("created_at", -1).limit(100))
 
-        # Convert datetime objects to ISO strings for JSON serialization
         for s in sessions:
             for key in ("first_record_time", "last_update_time", "created_at"):
                 if key in s and isinstance(s[key], datetime):
@@ -194,17 +205,18 @@ def get_all_sessions():
         return sessions
 
     except Exception as e:
-        logger.error(f"❌ MongoDB get_all_sessions failed: {e}")
+        logger.error(f"MongoDB get_all_sessions failed: {e}")
         return []
 
 
 def get_session(session_id: str):
     """Get a single session by ID."""
-    if not MONGO_AVAILABLE or _db is None:
+    db = _get_db()
+    if db is None:
         return None
 
     try:
-        doc = _db.sessions.find_one(
+        doc = db.sessions.find_one(
             {"session_id": session_id},
             {"_id": 0}
         )
@@ -215,5 +227,5 @@ def get_session(session_id: str):
         return doc
 
     except Exception as e:
-        logger.error(f"❌ MongoDB get_session failed: {e}")
+        logger.error(f"MongoDB get_session failed: {e}")
         return None
