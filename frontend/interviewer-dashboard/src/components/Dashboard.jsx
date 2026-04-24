@@ -87,7 +87,7 @@ export default function Dashboard() {
       await fetch(`${BACKEND}/ai/finalize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId }),
+        body: JSON.stringify({ session_id: sessionId, tab_switches: tabSwitches }),
       });
 
       const res = await fetch(`${BACKEND}/ai/timeline/${sessionId}`);
