@@ -23,11 +23,13 @@ def get_evidence_files(session_id):
 
 def generate_final_report(session_id: str, fusion_state: dict, tab_switches_override: int = None):
 
+    # Read events from both SESSION_EVENTS (in-memory) and fusion_state (more reliable)
+    # Take max of both sources to ensure nothing is lost
     events = SESSION_EVENTS.get(session_id, {})
-    phone = events.get("phone", 0)
-    multi = events.get("multiple_person", 0)
-    camera = events.get("camera", 0)
-    looking = events.get("looking_away", 0)
+    phone = max(events.get("phone", 0), fusion_state.get("phone_events", 0))
+    multi = max(events.get("multiple_person", 0), fusion_state.get("multiple_person_events", 0))
+    camera = max(events.get("camera", 0), fusion_state.get("camera_events", 0))
+    looking = max(events.get("looking_away", 0), fusion_state.get("looking_away_events", 0))
 
     # Use peak scores from the session (not last-frame values)
     audio_ai_score = max(

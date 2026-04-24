@@ -20,6 +20,12 @@ STATE = defaultdict(lambda: {
 
     "voice_embedding": None,
     "voice_drift_score": 0,
+
+    # Event counters (for final report)
+    "phone_events": 0,
+    "multiple_person_events": 0,
+    "camera_events": 0,
+    "looking_away_events": 0,
 })
 
 
@@ -75,6 +81,14 @@ def update_audio(session_id, score):
 
 def update_tab_switch(session_id):
     STATE[session_id]["tab_switches"] += 1
+
+
+def record_event_in_state(session_id, event_type):
+    """Record violation events (phone, multiple_person, camera, looking_away) in fusion state."""
+    key = f"{event_type}_events"
+    state = STATE[session_id]
+    if key in state:
+        state[key] = state.get(key, 0) + 1
 
 
 # -----------------------------
