@@ -42,7 +42,8 @@ class Status(Enum):
 
 # ================= YOLO =================
 
-_model = None
+_model = None       # Pose model (keypoints + person tracking)
+_det_model = None   # Detection model (phone, objects)
 _last_face_id = None
 _frame_count = 0
 _first_frame = True
@@ -51,10 +52,20 @@ _first_frame = True
 def initialize_model():
     global _model
     if _model is None:
-        logger.info("🔥 Loading YOLOv8 Pose + Tracking model...")
+        logger.info("Loading YOLOv8 Pose model...")
         _model = load_yolo_safe("yolov8n-pose.pt")
-        logger.info("✅ YOLO MODEL LOADED SUCCESSFULLY")
+        logger.info("YOLO Pose model loaded")
     return _model
+
+
+def initialize_det_model():
+    global _det_model
+    if _det_model is None:
+        logger.info("Loading YOLOv8 Detection model (for phone detection)...")
+        _det_model = load_yolo_safe("yolov8n.pt")
+        if _det_model:
+            logger.info(f"YOLO Det model loaded - classes: {list(_det_model.names.values())[:10]}...")
+    return _det_model
 
 
 def reset_state():
@@ -105,28 +116,45 @@ def estimate_head_pose(frame: Optional[np.ndarray] = None) -> Dict:
         persons = []
         face_id = None
 
-        # ---------- OBJECT LOOP ----------
+        # ---------- POSE MODEL LOOP (persons + keypoints) ----------
         for box in results.boxes:
 
             conf = float(box.conf[0])  # detection confidence
 
-            # NEW: ignore low confidence detections
             if conf < config.YOLO_CONF_THRESHOLD:
                 continue
 
             cls = int(box.cls[0])
             label = model.names[cls]
 
-            logger.info(f"🔍 YOLO DETECTED {label} (conf={conf:.2f})")
-
-            if label == "cell phone":
-                phone_detected = True
-
             if label == "person":
                 persons.append(box)
 
         person_count = len(persons)
         multiple_faces = person_count > 1
+
+        # ---------- PHONE DETECTION (separate model) ----------
+        # yolov8n-pose.pt only has 'person' class, so we use yolov8n.pt
+        # which has 80 COCO classes including 'cell phone' (class 67)
+        try:
+            det_model = initialize_det_model()
+            if det_model is not None:
+                det_results = det_model(frame, verbose=False)[0]
+                for box in det_results.boxes:
+                    conf = float(box.conf[0])
+                    if conf < 0.35:  # Lower threshold for phone detection
+                        continue
+                    cls = int(box.cls[0])
+                    label = det_model.names[cls]
+                    if label == "cell phone":
+                        phone_detected = True
+                        logger.warning(f"📱 PHONE DETECTED! (conf={conf:.2f})")
+                    elif label == "laptop":
+                        logger.info(f"💻 Laptop detected (conf={conf:.2f})")
+                    elif label == "book":
+                        logger.info(f"📖 Book detected (conf={conf:.2f})")
+        except Exception as det_err:
+            logger.warning(f"Phone detection pass failed: {det_err}")
 
         # ---------- FACE TRACK ID ----------
         if results.boxes.id is not None and len(results.boxes.id) > 0:
