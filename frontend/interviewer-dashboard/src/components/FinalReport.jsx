@@ -9,7 +9,6 @@ const decisionColor = {
 export default function FinalReport({ report }) {
   if (!report) return null;
 
-  // Use the verdict from the backend (real-time computed) instead of re-computing here
   const verdict = report.verdict || "PASS";
   const decision = verdict.includes("FAIL")
     ? "FAIL"
@@ -18,6 +17,11 @@ export default function FinalReport({ report }) {
     : "PASS";
 
   const riskScore = report.final_risk_score || report.final_score || 0;
+  const failReasons = report.fail_reasons || [];
+  const reviewReasons = report.review_reasons || [];
+
+  // Color event counts: red if > 0 for critical violations
+  const eventColor = (count) => (count > 0 ? "#ff1744" : "#4caf50");
 
   return (
     <div style={styles.container}>
@@ -25,42 +29,81 @@ export default function FinalReport({ report }) {
 
       <div style={styles.card}>
         <p style={styles.item}><b>Session ID:</b> {report.session_id}</p>
-        <p style={styles.item}><b>Final Risk Score:</b> <span style={{ color: riskScore > 60 ? '#ff1744' : riskScore > 30 ? '#ffa726' : '#00ff88', fontWeight: 'bold' }}>{riskScore}/100</span></p>
+        <p style={styles.item}>
+          <b>Final Risk Score:</b>{" "}
+          <span style={{
+            color: riskScore > 50 ? '#ff1744' : riskScore > 30 ? '#ffa726' : '#00ff88',
+            fontWeight: 'bold',
+            fontSize: 18
+          }}>
+            {riskScore}/100
+          </span>
+        </p>
         <p style={styles.item}><b>Video Score:</b> {report.video_score || 0}/100</p>
         <p style={styles.item}><b>Audio Score:</b> {report.audio_score || 0}/100</p>
-        <p style={styles.item}><b>Tab Switches:</b> {report.tab_switches || 0}</p>
+        <p style={styles.item}>
+          <b>Tab Switches:</b>{" "}
+          <span style={{ color: (report.tab_switches || 0) > 3 ? '#ff1744' : '#e0e0e0', fontWeight: 'bold' }}>
+            {report.tab_switches || 0}
+          </span>
+          {(report.tab_switches || 0) > 3 && <span style={{ color: '#ff1744', fontSize: 12, marginLeft: 8 }}>⚠ EXCESSIVE</span>}
+        </p>
 
         {/* Event Breakdown */}
         <h4 style={{ color: '#fff', marginBottom: 8 }}>📊 Violation Events</h4>
         <div style={styles.eventGrid}>
-          <div style={styles.eventItem}>
+          <div style={{...styles.eventItem, borderColor: eventColor(report.phone_events || 0)}}>
             <span style={styles.eventLabel}>📱 Phone</span>
-            <span style={styles.eventValue}>{report.phone_events || 0}</span>
+            <span style={{...styles.eventValue, color: eventColor(report.phone_events || 0)}}>
+              {report.phone_events || 0}
+            </span>
           </div>
-          <div style={styles.eventItem}>
+          <div style={{...styles.eventItem, borderColor: eventColor(report.multiple_person_events || 0)}}>
             <span style={styles.eventLabel}>👥 Multi-Person</span>
-            <span style={styles.eventValue}>{report.multiple_person_events || 0}</span>
+            <span style={{...styles.eventValue, color: eventColor(report.multiple_person_events || 0)}}>
+              {report.multiple_person_events || 0}
+            </span>
           </div>
-          <div style={styles.eventItem}>
+          <div style={{...styles.eventItem, borderColor: eventColor(report.camera_events || 0)}}>
             <span style={styles.eventLabel}>📷 Camera</span>
-            <span style={styles.eventValue}>{report.camera_events || 0}</span>
+            <span style={{...styles.eventValue, color: eventColor(report.camera_events || 0)}}>
+              {report.camera_events || 0}
+            </span>
           </div>
-          <div style={styles.eventItem}>
+          <div style={{...styles.eventItem, borderColor: eventColor(report.looking_away_events > 5 ? 1 : 0)}}>
             <span style={styles.eventLabel}>👀 Looking Away</span>
-            <span style={styles.eventValue}>{report.looking_away_events || 0}</span>
+            <span style={{...styles.eventValue, color: eventColor(report.looking_away_events > 5 ? 1 : 0)}}>
+              {report.looking_away_events || 0}
+            </span>
           </div>
         </div>
 
+        {/* Fail Reasons */}
+        {failReasons.length > 0 && (
+          <>
+            <h4 style={{ color: '#ff1744', marginBottom: 8 }}>🚨 Fail Reasons</h4>
+            <ul style={{...styles.reasonList, color: '#ff8a80'}}>
+              {failReasons.map((r, i) => (
+                <li key={i} style={styles.reasonItem}>{r}</li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {/* Review Reasons */}
+        {reviewReasons.length > 0 && failReasons.length === 0 && (
+          <>
+            <h4 style={{ color: '#ffa726', marginBottom: 8 }}>⚠️ Review Reasons</h4>
+            <ul style={{...styles.reasonList, color: '#ffcc80'}}>
+              {reviewReasons.map((r, i) => (
+                <li key={i} style={styles.reasonItem}>{r}</li>
+              ))}
+            </ul>
+          </>
+        )}
+
         {/* Confidence */}
         <p style={styles.item}><b>Confidence:</b> {report.confidence || 0}%</p>
-
-        {/* Reasoning */}
-        <h4 style={{ color: '#fff', marginBottom: 8 }}>🧠 Reasoning</h4>
-        <ul style={styles.reasonList}>
-          {(report.reasons || []).map((r, i) => (
-            <li key={i} style={styles.reasonItem}>{r}</li>
-          ))}
-        </ul>
 
         {/* Evidence */}
         {report.evidence_files && report.evidence_files.length > 0 && (
@@ -79,6 +122,11 @@ export default function FinalReport({ report }) {
         >
           FINAL DECISION: {verdict}
         </div>
+
+        {/* Status Message */}
+        <p style={{ color: '#b0b0b0', fontSize: 12, textAlign: 'center', marginTop: 8 }}>
+          {report.status_message || ""}
+        </p>
       </div>
     </div>
   );
@@ -120,7 +168,6 @@ const styles = {
     fontSize: 13,
   },
   eventValue: {
-    color: "#fff",
     fontWeight: "bold",
     fontSize: 14,
   },
@@ -128,7 +175,6 @@ const styles = {
     margin: "8px 0 16px 0",
     paddingLeft: 20,
     fontSize: 13,
-    color: "#b0b0b0",
   },
   reasonItem: {
     marginBottom: 4,
