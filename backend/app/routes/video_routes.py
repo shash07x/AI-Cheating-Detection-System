@@ -31,9 +31,10 @@ FRAME_COUNT = {}
 
 
 def sanitize(data):
+    from collections import deque
     if isinstance(data, dict):
         return {k: sanitize(v) for k, v in data.items()}
-    elif isinstance(data, list):
+    elif isinstance(data, (list, deque)):
         return [sanitize(v) for v in data]
     elif isinstance(data, (np.bool_, bool)):
         return bool(data)
@@ -41,6 +42,10 @@ def sanitize(data):
         return int(data)
     elif isinstance(data, (np.floating, float)):
         return float(data)
+    elif isinstance(data, np.ndarray):
+        return data.tolist()
+    elif data is None:
+        return None
     else:
         return data
 
@@ -107,8 +112,8 @@ def analyze_video():
             frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
             if frame.mean() < 1:
-                logger.warning("⚠️ Empty frame received from frontend")
-                return jsonify({"status": "empty_frame"}), 200
+                logger.warning("Fully black frame - likely camera blocked")
+                # Don't return early - let it flow to camera-blocked detection
 
             frame = cv2.resize(frame, (960, 720))
 
@@ -125,16 +130,16 @@ def analyze_video():
         evidence_path = None
         detection_type = "normal"
 
-        logger.debug(f"🔍 Starting video analysis for session {session_id}")
+        logger.debug(f"Starting video analysis for session {session_id}")
 
         # ===== Step 1: Check for camera obstruction =====
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         mean_brightness = np.mean(gray)
         brightness_variance = np.var(gray)
 
-        logger.debug(f"   📊 Brightness: {mean_brightness:.2f}, Variance: {brightness_variance:.2f}")
+        logger.debug(f"Brightness: {mean_brightness:.2f}, Variance: {brightness_variance:.2f}")
 
-        if mean_brightness < 0.5 and brightness_variance < 0.5:
+        if mean_brightness < BLACK_FRAME_THRESHOLD or brightness_variance < COVERED_FRAME_VARIANCE:
             violation_level = "critical"
             video_score = 95
             reasons.append("🚨 Camera blocked/covered")
