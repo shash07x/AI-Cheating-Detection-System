@@ -21,7 +21,7 @@ def get_evidence_files(session_id):
     return [f for f in os.listdir(folder) if f.endswith(".jpg")]
 
 
-def generate_final_report(session_id: str, fusion_state: dict):
+def generate_final_report(session_id: str, fusion_state: dict, tab_switches_override: int = None):
 
     events = SESSION_EVENTS.get(session_id, {})
     phone = events.get("phone", 0)
@@ -38,7 +38,11 @@ def generate_final_report(session_id: str, fusion_state: dict):
         fusion_state.get("video_score", 0),
         fusion_state.get("max_video_score", 0)
     )
-    tab_switches = fusion_state.get("tab_switches", 0)
+    # Use client-reported tab_switches if provided, else fall back to fusion_state
+    if tab_switches_override is not None:
+        tab_switches = max(tab_switches_override, fusion_state.get("tab_switches", 0))
+    else:
+        tab_switches = fusion_state.get("tab_switches", 0)
     violation_count = fusion_state.get("violation_count", 0)
 
     # Calculate final risk (Weighted — events + scores)
