@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [finalReport, setFinalReport] = useState(null);
   const [popupAlert, setPopupAlert] = useState(null);
   const [pendingCandidate, setPendingCandidate] = useState(null);
+  const [admittedCandidateId, setAdmittedCandidateId] = useState("");
 
   const [audioScore, setAudioScore] = useState(0);
   const [audioHistory, setAudioHistory] = useState([]);
@@ -57,7 +58,7 @@ export default function Dashboard() {
       const res = await fetch(`${BACKEND}/ai/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId }),
+        body: JSON.stringify({ session_id: sessionId, candidate_id: admittedCandidateId }),
       });
 
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -87,7 +88,7 @@ export default function Dashboard() {
       await fetch(`${BACKEND}/ai/finalize`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId, tab_switches: tabSwitches }),
+        body: JSON.stringify({ session_id: sessionId, tab_switches: tabSwitches, candidate_id: admittedCandidateId }),
       });
 
       const res = await fetch(`${BACKEND}/ai/timeline/${sessionId}`);
@@ -125,6 +126,7 @@ export default function Dashboard() {
       admitted,
       reason: admitted ? "" : "Entry declined by interviewer.",
     });
+    if (admitted) setAdmittedCandidateId(candidateId);
     setPendingCandidate(null);
   };
 
